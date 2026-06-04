@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hệ Thống Ôn Tập 3 Môn — VBHC · QTNL · LVN</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07101f; --s1: #0c1828; --s2: #102035; --s3: #162843;
+  --gold: #c8a435; --gold-b: #e8c060; --gold-dim: rgba(200,164,53,0.15); --gold-line: rgba(200,164,53,0.22);
+  --red: #c0392b; --red-dim: rgba(192,57,43,0.15);
+  --green: #1db88e; --green-dim: rgba(29,184,142,0.12);
+  --blue: #4a9eff; --purple: #8b5cf6;
+  --t1: #ede8dc; --t2: #b8aea0; --t3: #7a8494; --t4: #4a5468;
+  --b1: rgba(200,164,53,0.18); --b2: rgba(255,255,255,0.07); --b3: rgba(255,255,255,0.04);
+  --sb-w: 250px; --sb-bg: #090f1d;
+  --r1: 6px; --r2: 12px; --r3: 18px;
+  --tr: 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #f2ece0; --s1: #fffdf5; --s2: #f5f0e4; --s3: #ece6d8;
+  --t1: #1a1208; --t2: #4a3c28; --t3: #7a6a50; --t4: #a09070;
+  --b1: rgba(180,140,30,0.22); --b2: rgba(0,0,0,0.08); --b3: rgba(0,0,0,0.04);
+  --sb-bg: #1a2540; --gold-dim: rgba(200,164,53,0.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; overflow:hidden; font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--t1); }
+.app { display:flex; height:100vh; width:100vw; overflow:hidden; position:relative; }
+#bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.6; }
+[data-theme="light"] #bg-canvas { opacity:0.25; }
+
+/* Sidebar */
+.sidebar { width:var(--sb-w); min-width:var(--sb-w); height:100vh; background:var(--sb-bg); border-right:1px solid var(--b1); display:flex; flex-direction:column; z-index:50; position:relative; overflow:hidden; }
+[data-theme="light"] .sidebar { background:#1a2540; }
+.brand { padding:22px 20px 18px; border-bottom:1px solid rgba(200,164,53,0.12); }
+.brand-seal { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.brand-label { font-family:'Cormorant Garamond',serif; font-size:14px; font-weight:600; color:var(--gold); line-height:1.2; }
+.brand-label small { display:block; font-size:9px; color:var(--gold); opacity:0.55; letter-spacing:1.5px; text-transform:uppercase; font-family:'Be Vietnam Pro',sans-serif; font-weight:500; }
+.brand-divider { height:1px; background:linear-gradient(to right,var(--b1),transparent); }
+
+.sidebar-progress { padding:12px 18px; background:rgba(200,164,53,0.04); border-bottom:1px solid var(--b2); }
+.sp-label { font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--t3); margin-bottom:6px; font-weight:700; }
+.sp-track { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-bottom:3px; }
+.sp-fill { height:100%; background:linear-gradient(to right,var(--gold),var(--gold-b)); border-radius:2px; transition:width 0.6s ease; }
+.sp-pct { font-size:10px; color:var(--gold); font-weight:700; font-family:'JetBrains Mono',monospace; }
+
+.nav { padding:10px 0; flex:1; overflow-y:auto; }
+.nav::-webkit-scrollbar { display:none; }
+.nav-section-label { font-size:8px; letter-spacing:2px; text-transform:uppercase; color:var(--t4); padding:10px 20px 4px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.nav-section-label::after { content:''; flex:1; height:1px; background:var(--b2); }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 20px; cursor:pointer; color:var(--t3); font-size:12px; font-weight:600; letter-spacing:0.2px; transition:all var(--tr); position:relative; user-select:none; }
+.nav-item::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:0; background:var(--gold); border-radius:0 2px 2px 0; transition:height var(--tr); }
+.nav-item:hover { color:var(--t1); background:rgba(255,255,255,0.03); }
+.nav-item.active { color:var(--gold-b); background:var(--gold-dim); }
+.nav-item.active::before { height:22px; }
+.nav-item .nav-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.nav-item .nav-badge { margin-left:auto; font-size:8px; background:var(--gold-dim); border:1px solid var(--b1); color:var(--gold); border-radius:8px; padding:1px 6px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+
+.sidebar-footer { padding:12px 16px; border-top:1px solid var(--b2); display:flex; gap:6px; align-items:center; }
+.sf-theme { flex:1; display:flex; align-items:center; gap:6px; font-size:10px; color:var(--t3); cursor:pointer; padding:5px 8px; border-radius:var(--r1); border:1px solid var(--b2); transition:var(--tr); background:transparent; }
+.sf-theme:hover { border-color:var(--b1); color:var(--gold); }
+.sf-theme .icon { font-size:13px; }
+
+/* Main */
+.main { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; position:relative; z-index:10; }
+.topbar { height:48px; min-height:48px; display:flex; align-items:center; padding:0 24px; border-bottom:1px solid var(--b2); background:rgba(7,16,31,0.8); backdrop-filter:blur(20px); gap:12px; position:relative; z-index:20; }
+[data-theme="light"] .topbar { background:rgba(242,236,224,0.9); }
+.topbar-breadcrumb { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--t3); font-weight:500; }
+.topbar-breadcrumb .sep { opacity:0.4; }
+.topbar-current { color:var(--t1); font-weight:600; }
+.topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.topbar-stat { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--t3); padding:3px 10px; background:var(--b3); border:1px solid var(--b2); border-radius:16px; font-family:'JetBrains Mono',monospace; }
+.topbar-stat .dot { width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 5px var(--green); }
+
+.content-scroll { flex:1; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth; }
+.content-scroll::-webkit-scrollbar { width:4px; }
+.content-scroll::-webkit-scrollbar-thumb { background:rgba(200,164,53,0.2); border-radius:4px; }
+.content-scroll::-webkit-scrollbar-track { background:transparent; }
+
+.page { display:none; padding:28px 32px 48px; max-width:960px; animation:pgIn 0.4s ease forwards; }
+.page.active { display:block; }
+@keyframes pgIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.page-home { display:none; padding:0; max-width:100%; }
+.page-home.active { display:flex; align-items:stretch; }
+
+/* Home */
+.home-left { flex:1; padding:48px 44px; display:flex; flex-direction:column; justify-content:center; }
+.home-tag { display:inline-flex; align-items:center; gap:6px; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-weight:700; border:1px solid var(--b1); border-radius:16px; padding:3px 12px; margin-bottom:24px; background:var(--gold-dim); }
+.home-tag::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); }
+.home-h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(36px,4.5vw,60px); font-weight:700; line-height:1.05; color:var(--t1); margin-bottom:10px; }
+.home-h1 em { color:var(--gold); font-style:italic; }
+.home-sub { font-size:13px; color:var(--t2); line-height:1.7; max-width:460px; margin-bottom:32px; }
+.home-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:32px; }
+.home-card { background:var(--s2); border:1px solid var(--b2); border-radius:var(--r2); padding:16px; cursor:pointer; transition:all var(--tr); }
+.home-card:hover { border-color:var(--b1); transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,0.3); }
+.home-card-icon { font-size:20px; margin-bottom:6px; }
+.home-card-label { font-size:10px; font-weight:700; color:var(--t2); letter-spacing:0.3px; }
+.home-card-count { font-size:20px; font-weight:800; color:var(--t1); font-family:'Cormorant Garamond',serif; }
+.home-cta { display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#000; font-weight:800; font-size:12px; border:none; border-radius:var(--r2); padding:12px 24px; cursor:pointer; transition:all var(--tr); font-family:'Be Vietnam Pro',sans-serif; }
+.home-cta:hover { background:var(--gold-b); transform:translateY(-2px); box-shadow:0 6px 24px rgba(200,164,53,0.35); }
+.home-right { width:360px; min-width:360px; background:var(--s1); border-left:1px solid var(--b2); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:32px; }
+.subject-stack { position:relative; width:240px; }
+.subject-card-stack { position:absolute; background:var(--s1); border:1px solid var(--b1); border-radius:var(--r1); width:200px; padding:16px; text-align:center; }
+.subject-card-stack:nth-child(1) { height:auto; top:36px; left:18px; transform:rotate(5deg); background:var(--s3); }
+.subject-card-stack:nth-child(2) { height:auto; top:18px; left:8px; transform:rotate(2deg); background:var(--s2); }
+.subject-card-stack:nth-child(3) { height:auto; top:0; left:0; transform:rotate(0); animation:subFloat 6s ease-in-out infinite; background:var(--s1); }
+@keyframes subFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.subject-card-stack .emoji { font-size:28px; display:block; margin-bottom:6px; }
+.subject-card-stack .name { font-size:12px; font-weight:700; color:var(--gold); }
+.subject-card-stack .desc { font-size:9px; color:var(--t3); margin-top:4px; }
+
+/* Page components */
+.pg-tag { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.pg-tag::before { content:''; width:20px; height:1.5px; background:var(--gold); border-radius:1px; }
+.pg-h1 { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--t1); line-height:1.2; margin-bottom:4px; }
+.pg-sub { font-size:12.5px; color:var(--t3); margin-bottom:24px; line-height:1.6; }
+.pg-divider { height:1px; background:linear-gradient(to right,var(--b1),transparent); margin-bottom:24px; }
+.pg-stamp { display:inline-flex; align-items:center; justify-content:center; padding:3px 12px; border:2px solid var(--red); border-radius:4px; color:var(--red); font-size:8px; font-weight:900; letter-spacing:2px; text-transform:uppercase; transform:rotate(-3deg); margin-bottom:16px; opacity:0; }
+.page.active .pg-stamp { animation:stampIn 0.6s cubic-bezier(0.175,0.885,0.32,1.4) 0.2s forwards; }
+@keyframes stampIn { 0%{opacity:0;transform:rotate(-3deg) scale(2)} 70%{opacity:0.9} 85%{transform:rotate(-3deg) scale(0.94)} 100%{opacity:0.85;transform:rotate(-3deg) scale(1)} }
+
+.info-box { background:var(--gold-dim); border:1px solid var(--b1); border-left:3px solid var(--gold); border-radius:var(--r2); padding:16px 18px; margin:16px 0; font-size:13px; line-height:1.7; color:var(--t2); }
+.info-box-label { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:6px; }
+.tint-box { background:var(--green-dim); border-left:3px solid var(--green); border-radius:0 var(--r1) var(--r1) 0; padding:12px 16px; margin:10px 0; font-size:13px; line-height:1.7; color:var(--t2); }
+
+.flow { display:flex; flex-direction:column; gap:0; margin:16px 0; }
+.flow-item { display:flex; gap:16px; position:relative; }
+.flow-item:not(:last-child)::after { content:''; position:absolute; left:18px; top:40px; width:2px; height:calc(100% - 10px); background:linear-gradient(to bottom,var(--b1),transparent); }
+.flow-num { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:var(--s2); border:1px solid var(--b1); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-size:15px; font-weight:700; color:var(--gold); }
+.flow-body { padding:6px 0 28px; flex:1; }
+.flow-title { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:4px; }
+.flow-desc { font-size:12.5px; color:var(--t3); line-height:1.7; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin:16px 0; }
+.vb-card { background:var(--s2); border:1px solid var(--b3); border-radius:var(--r2); padding:18px; cursor:pointer; transition:all var(--tr); position:relative; overflow:hidden; }
+.vb-card::after { content:''; position:absolute; inset:0; border-radius:var(--r2); background:linear-gradient(135deg,rgba(200,164,53,0.06),transparent); opacity:0; transition:opacity var(--tr); }
+.vb-card:hover { border-color:var(--b1); transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,0,0,0.35); }
+.vb-card:hover::after { opacity:1; }
+.vb-card-icon { font-size:22px; margin-bottom:8px; display:block; }
+.vb-card-name { font-size:13px; font-weight:800; color:var(--t1); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px; }
+.vb-card-badge { font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:8px; margin-bottom:8px; display:inline-block; }
+.badge-gold { background:rgba(200,164,53,0.12); color:var(--gold); border:1px solid rgba(200,164,53,0.25); }
+.badge-blue { background:rgba(74,158,255,0.1); color:var(--blue); border:1px solid rgba(74,158,255,0.2); }
+.badge-green{ background:var(--green-dim); color:var(--green); border:1px solid rgba(29,184,142,0.25); }
+.badge-purple{ background:rgba(139,92,246,0.12); color:var(--purple); border:1px solid rgba(139,92,246,0.25); }
+.vb-card-desc { font-size:12px; color:var(--t3); line-height:1.6; }
+
+.detail-rows { display:flex; flex-direction:column; gap:0; }
+.detail-row { display:flex; gap:14px; padding:10px 0; border-bottom:1px solid var(--b3); font-size:13px; }
+.detail-row:last-child { border-bottom:none; }
+.detail-key { font-weight:700; color:var(--t1); min-width:110px; flex-shrink:0; font-size:12px; }
+.detail-val { color:var(--t3); line-height:1.6; font-size:12.5px; }
+
+.key-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.key-row { display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--t3); line-height:1.6; }
+.key-num { width:20px; height:20px; flex-shrink:0; margin-top:1px; background:var(--gold-dim); color:var(--gold); border:1px solid var(--b1); border-radius:50%; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; }
+
+.cmp-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+.cmp-table th { background:var(--gold-dim); color:var(--gold); padding:8px 12px; text-align:left; font-weight:700; border-bottom:1px solid var(--b1); }
+.cmp-table td { padding:8px 12px; border-bottom:1px solid var(--b3); color:var(--t3); vertical-align:top; font-size:12px; }
+.cmp-table td:first-child { font-weight:700; color:var(--t1); }
+.cmp-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+.doc-preview { background:#fffdf5; border-radius:var(--r2); padding:28px 32px; font-family:'Times New Roman',Times,serif; font-size:13px; line-height:1.8; color:#111; position:relative; margin:16px 0; box-shadow:0 6px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.06); }
+.doc-preview::before { content:''; position:absolute; top:0; right:0; border-width:0 28px 28px 0; border-style:solid; border-color:transparent #e8e0d0 transparent transparent; }
+.doc-label { position:absolute; top:-8px; left:16px; font-size:8px; font-weight:800; letter-spacing:1px; text-transform:uppercase; background:var(--gold); color:#000; border-radius:3px; padding:2px 8px; font-family:'Be Vietnam Pro',sans-serif; }
+.doc-header-row { display:flex; justify-content:space-between; gap:16px; margin-bottom:12px; font-size:12.5px; }
+.doc-left { text-align:left; } .doc-right { text-align:right; font-size:12px; }
+.bold { font-weight:700; } .uline { text-decoration:underline; } .indent { padding-left:20px; }
+.sig-row { display:flex; justify-content:space-between; margin-top:16px; font-size:12.5px; }
+.sig-right { text-align:center; }
+
+/* Quiz */
+.quiz-list { display:flex; flex-direction:column; gap:14px; }
+.quiz-card { background:var(--s2); border:1px solid var(--b2); border-radius:var(--r2); overflow:hidden; transition:border-color var(--tr); }
+.quiz-card:hover { border-color:var(--b1); }
+.quiz-q { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; font-size:13px; font-weight:600; color:var(--t1); line-height:1.6; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--b2); }
+.quiz-qnum { width:24px; height:24px; flex-shrink:0; margin-top:1px; background:var(--gold); color:#000; border-radius:50%; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; }
+.quiz-opts { padding:12px 16px; display:flex; flex-direction:column; gap:6px; }
+.opt { display:flex; gap:10px; align-items:center; padding:8px 12px; border-radius:var(--r1); border:1px solid var(--b2); cursor:pointer; transition:all 0.2s; font-size:12.5px; color:var(--t3); }
+.opt:hover { background:rgba(255,255,255,0.03); border-color:rgba(200,164,53,0.2); color:var(--t2); }
+.opt.chosen { border-color:var(--gold); color:var(--t1); background:rgba(200,164,53,0.06); }
+.opt.correct { border-color:var(--green); background:var(--green-dim); color:var(--t1); font-weight:700; }
+.opt.wrong { border-color:var(--red); background:var(--red-dim); color:var(--t1); }
+.opt-lbl { width:22px; height:22px; flex-shrink:0; border-radius:50%; background:var(--b2); color:var(--t2); font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; transition:all 0.2s; }
+.opt.correct .opt-lbl { background:var(--green); color:#fff; }
+.opt.wrong .opt-lbl { background:var(--red); color:#fff; }
+.opt.chosen .opt-lbl { background:var(--gold); color:#000; }
+.quiz-reveal-btn { margin:0 16px 14px; padding:7px 18px; border-radius:16px; border:none; background:var(--gold); color:#000; font-size:11px; font-weight:800; cursor:pointer; transition:all var(--tr); font-family:'Be Vietnam Pro',sans-serif; }
+.quiz-reveal-btn:hover { background:var(--gold-b); transform:translateY(-1px); }
+.quiz-explain { display:none; padding:12px 16px; border-top:1px solid var(--b2); background:var(--green-dim); font-size:12px; color:var(--t2); line-height:1.6; }
+.quiz-explain.show { display:block; animation:pgIn 0.3s ease; }
+.quiz-score-btn { display:block; width:100%; max-width:240px; margin:20px auto 0; padding:11px 28px; border-radius:var(--r2); border:none; background:var(--gold); color:#000; font-size:12px; font-weight:800; cursor:pointer; transition:all var(--tr); font-family:'Be Vietnam Pro',sans-serif; }
+.quiz-score-btn:hover { background:var(--gold-b); transform:translateY(-2px); box-shadow:0 6px 24px rgba(200,164,53,0.3); }
+#final-score { display:none; margin-top:14px; padding:16px; text-align:center; background:var(--gold-dim); border:1px solid var(--b1); border-radius:var(--r2); font-size:14px; font-weight:700; color:var(--t1); line-height:1.6; }
+
+/* Flashcards */
+.fc-controls { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.fc-prog-label { font-size:11px; color:var(--gold); font-weight:700; font-family:'JetBrains Mono',monospace; margin-left:auto; }
+.fc-reset-btn { padding:6px 16px; border-radius:16px; border:1px solid var(--b1); background:transparent; color:var(--t3); font-size:10px; font-weight:700; cursor:pointer; transition:all var(--tr); font-family:'Be Vietnam Pro',sans-serif; }
+.fc-reset-btn:hover { border-color:var(--gold); color:var(--gold); }
+.fc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+.fc { height:170px; perspective:1000px; cursor:pointer; }
+.fc-inner { width:100%; height:100%; transition:transform 0.6s cubic-bezier(0.4,0.2,0.2,1); transform-style:preserve-3d; position:relative; }
+.fc.flipped .fc-inner { transform:rotateY(180deg); }
+.fc-front, .fc-back { position:absolute; width:100%; height:100%; border-radius:var(--r2); backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:14px; }
+.fc-front { background:var(--s2); border:1px solid var(--b2); }
+.fc.flipped .fc-front { border-color:var(--b1); }
+.fc-back { background:var(--gold); transform:rotateY(180deg); }
+.fc-tag { font-size:8px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.fc-q { font-size:12px; font-weight:700; color:var(--t1); line-height:1.5; }
+.fc-hint { font-size:9px; color:var(--t4); margin-top:auto; }
+.fc-back .fc-a { font-size:11.5px; color:#000; font-weight:700; line-height:1.6; }
+
+/* Chapter Q&A blocks */
+.chapter-block { margin-bottom:36px; background:var(--s1); border:1px solid var(--b2); border-radius:var(--r2); overflow:hidden; }
+.ch-head { padding:16px 22px; display:flex; gap:12px; align-items:center; color:white; }
+.ch-num { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; flex-shrink:0; }
+.ch-head h2 { font-size:14px; font-weight:700; }
+.ch-head p { font-size:10.5px; opacity:0.8; margin-top:1px; }
+.ch-body { padding:20px 22px; }
+.q-block { margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--b2); }
+.q-block:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.q-label { display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; }
+.q-num { width:22px; height:22px; border-radius:50%; color:white; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; background:var(--gold); }
+.q-text { font-size:13px; font-weight:600; color:var(--t1); line-height:1.5; }
+.a-body { margin-left:30px; }
+.def-box { border-left:3px solid var(--gold); padding:10px 14px; border-radius:0 6px 6px 0; margin:8px 0; font-size:12.5px; line-height:1.6; background:var(--gold-dim); }
+.pt-list { list-style:none; padding:0; margin:6px 0; }
+.pt-list li { padding:3px 0 3px 18px; position:relative; font-size:12px; color:var(--t3); }
+.pt-list li::before { content:'▸'; position:absolute; left:0; color:var(--gold); }
+.ch-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:8px 0; }
+.ch-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:8px 0; }
+.mini-card { border-radius:6px; padding:10px 12px; border:1px solid var(--b2); background:var(--s2); }
+.mini-card h5 { font-size:11px; font-weight:700; margin-bottom:4px; color:var(--t1); }
+.mini-card ul { list-style:none; padding:0; }
+.mini-card ul li { font-size:11px; padding:2px 0 2px 14px; position:relative; color:var(--t3); }
+.mini-card ul li::before { content:'–'; position:absolute; left:0; color:var(--gold); }
+.ch-flow { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:8px 0; }
+.ch-step { background:var(--s2); border:1px solid var(--b2); border-radius:6px; padding:6px 10px; text-align:center; font-size:11px; font-weight:600; min-width:80px; flex:1; }
+.ch-arr { color:var(--t4); font-size:14px; font-weight:700; }
+.ch-table { width:100%; border-collapse:collapse; font-size:11.5px; margin:8px 0; }
+.ch-table th { background:var(--gold-dim); color:var(--gold); padding:7px 10px; text-align:left; font-weight:700; border-bottom:1px solid var(--b1); }
+.ch-table td { padding:6px 10px; border-bottom:1px solid var(--b2); color:var(--t3); vertical-align:top; }
+.ch-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* Modal */
+.modal-bg { position:fixed; inset:0; z-index:200; opacity:0; pointer-events:none; background:rgba(0,0,0,0.75); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; transition:opacity var(--tr); }
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal-box { background:var(--s1); border:1px solid var(--b1); border-radius:var(--r3); width:min(600px,90vw); max-height:85vh; overflow-y:auto; padding:28px; position:relative; transform:scale(0.94) translateY(12px); transition:transform var(--tr); }
+.modal-box::-webkit-scrollbar { width:4px; }
+.modal-box::-webkit-scrollbar-thumb { background:rgba(200,164,53,0.3); border-radius:4px; }
+.modal-bg.open .modal-box { transform:scale(1) translateY(0); }
+.modal-close { position:absolute; top:14px; right:14px; width:28px; height:28px; border-radius:50%; border:1px solid var(--b2); background:var(--b3); color:var(--t2); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--tr); }
+.modal-close:hover { background:var(--b2); color:var(--t1); border-color:var(--b1); }
+
+.section-rule { display:flex; align-items:center; gap:10px; margin:24px 0 14px; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); font-weight:700; }
+.section-rule::before,.section-rule::after { content:''; flex:1; height:1px; background:var(--b1); }
+
+.ink-drop { position:fixed; border-radius:50%; pointer-events:none; z-index:999; background:radial-gradient(circle,rgba(200,164,53,0.5) 0%,rgba(7,16,31,0.7) 55%,transparent 100%); transform:scale(0); animation:inkSpread 0.65s cubic-bezier(0.4,0,0.2,1) forwards; }
+@keyframes inkSpread { 0%{transform:scale(0);opacity:0.8} 100%{transform:scale(10);opacity:0} }
+
+@media(max-width:900px){
+  .sidebar { width:56px; min-width:56px; }
+  .brand-label, .nav-item span, .sidebar-footer .sf-label, .sidebar-progress, .nav-item .nav-badge { display:none; }
+  .nav-item { padding:12px; justify-content:center; }
+  .home-right { display:none; }
+  .page { padding:20px 16px 40px; }
+  .topbar { padding:0 16px; }
+  .home-left { padding:28px 20px; }
+  .home-cards { grid-template-columns:repeat(2,1fr); }
+  .ch-grid2, .ch-grid3 { grid-template-columns:1fr; }
+}
+@media(max-width:600px){
+  .home-cards { grid-template-columns:1fr; }
+  .card-grid { grid-template-columns:1fr; }
+  .fc-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-seal">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="15" stroke="#c8a435" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <circle cx="16" cy="16" r="10" stroke="#c8a435" stroke-width="1" opacity="0.5"/>
+          <text x="16" y="20" text-anchor="middle" fill="#c8a435" font-size="8" font-weight="700" font-family="serif">3</text>
+        </svg>
+        <div class="brand-label"><small>Hệ thống ôn tập</small>3 Môn — Đại học</div>
+      </div>
+      <div class="brand-divider"></div>
+    </div>
+
+    <div class="sidebar-progress">
+      <div class="sp-label">Tổng tiến độ</div>
+      <div class="sp-track"><div class="sp-fill" id="sp-fill" style="width:0%"></div></div>
+      <div class="sp-pct" id="sp-pct">0%</div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section-label">Bảng điều khiển</div>
+      <div class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span>Tổng quan</span></div>
+
+      <div class="nav-section-label" style="margin-top:6px">📜 Văn Bản Hành Chính</div>
+      <div class="nav-item" data-page="vb-lythuyet"><span class="nav-icon">📖</span><span>Lý thuyết VBHC</span><span class="nav-badge">NĐ30</span></div>
+      <div class="nav-item" data-page="vb-soanthao"><span class="nav-icon">✍️</span><span>Soạn thảo VB</span><span class="nav-badge">6 mẫu</span></div>
+      <div class="nav-item" data-page="vb-quiz"><span class="nav-icon">🎯</span><span>Trắc nghiệm VB</span><span class="nav-badge">20Q</span></div>
+      <div class="nav-item" data-page="vb-fc"><span class="nav-icon">🃏</span><span>Flashcard VB</span><span class="nav-badge">18</span></div>
+
+      <div class="nav-section-label" style="margin-top:6px">👥 Quản Trị Nhân Lực</div>
+      <div class="nav-item" data-page="qtnl-lythuyet"><span class="nav-icon">📘</span><span>Lý thuyết QTNL</span><span class="nav-badge">6 ch</span></div>
+      <div class="nav-item" data-page="qtnl-quiz"><span class="nav-icon">🎯</span><span>Trắc nghiệm QTNL</span><span class="nav-badge">15Q</span></div>
+      <div class="nav-item" data-page="qtnl-fc"><span class="nav-icon">🃏</span><span>Flashcard QTNL</span><span class="nav-badge">12</span></div>
+
+      <div class="nav-section-label" style="margin-top:6px">🤝 Kỹ Năng LV Nhóm</div>
+      <div class="nav-item" data-page="lvn-lythuyet"><span class="nav-icon">📗</span><span>Lý thuyết KNL</span><span class="nav-badge">3 ch</span></div>
+      <div class="nav-item" data-page="lvn-quiz"><span class="nav-icon">🎯</span><span>Trắc nghiệm KNL</span><span class="nav-badge">10Q</span></div>
+      <div class="nav-item" data-page="lvn-fc"><span class="nav-icon">🃏</span><span>Flashcard KNL</span><span class="nav-badge">10</span></div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sf-theme" id="theme-btn">
+        <span class="icon">☀️</span>
+        <span class="sf-label">Light mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>Hệ thống ôn tập</span>
+        <span class="sep">/</span>
+        <span class="topbar-current" id="topbar-current">Tổng quan</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-stat"><div class="dot"></div><span id="stat-text">Sẵn sàng</span></div>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+
+      <!-- ══ HOME ══ -->
+      <div class="page-home page active" id="home">
+        <div class="home-left">
+          <div class="home-tag">Kỳ thi đại học · Học kỳ II</div>
+          <h1 class="home-h1">Hệ Thống<br><em>Ôn Tập 3 Môn</em></h1>
+          <p class="home-sub">Văn Bản Hành Chính · Quản Trị Nhân Lực Đại Cương · Kỹ Năng Làm Việc Nhóm — Toàn bộ lý thuyết, trắc nghiệm và flashcard trong một giao diện.</p>
+          <div class="home-cards">
+            <div class="home-card" onclick="goTo('vb-lythuyet')"><div class="home-card-icon">📜</div><div class="home-card-label">VB Hành Chính</div><div class="home-card-count">4</div></div>
+            <div class="home-card" onclick="goTo('qtnl-lythuyet')"><div class="home-card-icon">👥</div><div class="home-card-label">QT Nhân Lực</div><div class="home-card-count">3</div></div>
+            <div class="home-card" onclick="goTo('lvn-lythuyet')"><div class="home-card-icon">🤝</div><div class="home-card-label">KN Làm Việc Nhóm</div><div class="home-card-count">3</div></div>
+          </div>
+          <button class="home-cta" onclick="goTo('vb-lythuyet')">
+            Bắt đầu ôn tập
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="home-right">
+          <div class="subject-stack">
+            <div class="subject-card-stack"><span class="emoji">📜</span><span class="name">VB Hành Chính</span><span class="desc">Nghị định 30/2020</span></div>
+            <div class="subject-card-stack"><span class="emoji">👥</span><span class="name">QT Nhân Lực</span><span class="desc">6 chương đại cương</span></div>
+            <div class="subject-card-stack"><span class="emoji">🤝</span><span class="name">KN Làm Việc Nhóm</span><span class="desc">Tuckman · Họp · Lãnh đạo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════ -->
+      <!-- ══ VB: LÝ THUYẾT ══ -->
+      <!-- ═══════════════════════════════════════════════════ -->
+      <div class="page" id="vb-lythuyet">
+        <div class="pg-stamp">VĂN BẢN HÀNH CHÍNH</div>
+        <div class="pg-tag">Phần 01</div>
+        <h2 class="pg-h1">Lý thuyết Văn Bản Hành Chính</h2>
+        <p class="pg-sub">Nghị định 30/2020/NĐ-CP — Quy trình soạn thảo, quản lý VB đi/đến, 6 loại VB, sao văn bản, lập hồ sơ</p>
+        <div class="pg-divider"></div>
+
+        <div class="info-box">
+          <div class="info-box-label">⚡ Căn cứ pháp lý</div>
+          <strong>Điều 10 → Điều 38</strong>: Quy định toàn bộ quy trình soạn thảo, duyệt, ký ban hành, đăng ký, phát hành và lưu văn bản hành chính.
+        </div>
+
+        <div class="section-rule">📤 Quy trình VB Đi (Điều 10–19)</div>
+        <div class="flow">
+          <div class="flow-item">
+            <div class="flow-num">1</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 10 – Soạn thảo văn bản</div>
+              <div class="flow-desc">Người đứng đầu cơ quan giao <strong>đơn vị hoặc cá nhân</strong> chủ trì soạn thảo. Đơn vị/cá nhân phải: xác định tên loại, nội dung, độ mật, độ khẩn; thu thập, xử lý thông tin; soạn thảo đúng hình thức, thể thức, kỹ thuật trình bày.</div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">2</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 11 – Duyệt bản thảo</div>
+              <div class="flow-desc">Bản thảo phải do <strong>người có thẩm quyền ký văn bản duyệt</strong>. Nếu đã phê duyệt nhưng cần sửa chữa → phải trình lại người có thẩm quyền xem xét, quyết định.</div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">3</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 12 – Kiểm tra trước khi ký ban hành</div>
+              <div class="tint-box"><strong>Kiểm tra nội dung:</strong> Người đứng đầu đơn vị soạn thảo → chịu trách nhiệm về nội dung.<br><strong>Kiểm tra thể thức & kỹ thuật:</strong> Người được giao → chịu trách nhiệm về hình thức.</div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">4</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 13 – Ký ban hành văn bản</div>
+              <div class="tint-box">Chế độ thủ trưởng: người đứng đầu ký tất cả VB; có thể giao cấp phó ký thay. Ủy quyền ký: phải bằng văn bản, giới hạn thời gian & nội dung, <strong>không được ủy quyền lại</strong>. Ký thừa lệnh: người đứng đầu đơn vị thuộc cơ quan ký thừa lệnh. VB giấy: bút mực <strong>xanh</strong>, không dùng mực dễ phai. VB điện tử: ký số.</div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">5</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 14–16 – Cấp số, đăng ký văn bản đi</div>
+              <div class="tint-box">5 bước: ① Cấp số, thời gian ban hành ② Đăng ký VB đi ③ Nhân bản, đóng dấu/ký số ④ Phát hành, theo dõi ⑤ Lưu văn bản đi. Số cấp theo thứ tự từ 01/01 → 31/12 hằng năm. Đăng ký bằng <strong>Sổ đăng ký</strong> hoặc <strong>Hệ thống thông tin</strong>.</div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">6</div>
+            <div class="flow-body">
+              <div class="flow-title">Điều 17–19 – Phát hành & lưu văn bản đi</div>
+              <div class="flow-desc">VB giấy phát hành <strong>trong ngày ký</strong>, chậm nhất sáng ngày làm việc tiếp theo. VB điện tử lưu tại Hệ thống, đóng dấu ngay sau phát hành. VB giấy: bản chính lưu tại hồ sơ công việc.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-rule">📥 Quản lý VB Đến (Điều 20–24)</div>
+        <div class="info-box"><div class="info-box-label">📥 Điều 20–24 — Quản lý VB ĐẾN</div>VB đến là toàn bộ văn bản do cơ quan tiếp nhận từ bên ngoài hoặc nội bộ gửi đến. Trình tự quản lý gồm <strong>4 bước</strong> (VB đi có <strong>5 bước</strong> — điểm thi quan trọng!).</div>
+        <div class="flow">
+          <div class="flow-item"><div class="flow-num">1</div><div class="flow-body"><div class="flow-title">Điều 20 – Tiếp nhận</div><div class="flow-desc">Kiểm tra bì, đóng dấu "ĐẾN". VB điện tử: kiểm tra xác thực, thông báo cho nơi gửi trong ngày. Bì gửi đích danh cá nhân (liên quan công việc chung) → cá nhân phải chuyển lại Văn thư.</div></div></div>
+          <div class="flow-item"><div class="flow-num">2</div><div class="flow-body"><div class="flow-title">Điều 21–22 – Đăng ký</div><div class="flow-desc">VB không đăng ký tại Văn thư → đơn vị/cá nhân <strong>không có trách nhiệm giải quyết</strong>. Số đến liên tiếp theo thời gian, thống nhất VB giấy và điện tử.</div></div></div>
+          <div class="flow-item"><div class="flow-num">3</div><div class="flow-body"><div class="flow-title">Điều 23 – Trình, chuyển giao</div><div class="flow-desc">Phải trình <strong>trong ngày</strong>, chậm nhất ngày làm việc tiếp theo. VB khẩn: trình, chuyển giao <strong>ngay sau khi nhận</strong>.</div></div></div>
+          <div class="flow-item"><div class="flow-num">4</div><div class="flow-body"><div class="flow-title">Điều 24 – Giải quyết và theo dõi</div><div class="flow-desc">Giải quyết theo thẩm quyền. VB khẩn: giải quyết ngay. Đôn đốc nhắc nhở nếu quá hạn.</div></div></div>
+        </div>
+
+        <div class="section-rule">📄 Sao Văn Bản (Điều 25–27)</div>
+        <div class="card-grid">
+          <div class="vb-card" style="cursor:default"><span class="vb-card-icon">📄</span><div class="vb-card-name">Sao Y</div><div class="vb-card-badge badge-gold">Khoản 1</div><div class="vb-card-desc">Chép lại <strong>toàn bộ</strong> từ bản gốc/chính. 3 chiều: Giấy→Giấy, Điện tử→Giấy, Giấy→Điện tử. Ghi "Sao y bản gốc" hoặc "Sao y bản chính".</div></div>
+          <div class="vb-card" style="cursor:default"><span class="vb-card-icon">📋</span><div class="vb-card-name">Sao Lục</div><div class="vb-card-badge badge-blue">Khoản 2</div><div class="vb-card-desc">In, chụp từ <strong>bản sao y</strong> (không phải bản gốc). Ghi "Sao lục". Cùng giá trị pháp lý khi thực hiện đúng quy định.</div></div>
+          <div class="vb-card" style="cursor:default"><span class="vb-card-icon">✂️</span><div class="vb-card-name">Trích Sao</div><div class="vb-card-badge badge-green">Khoản 3</div><div class="vb-card-desc">Chép lại <strong>một hoặc một số phần</strong> của văn bản. Ghi "Trích sao". Phải ghi lại đầy đủ thể thức của phần trích.</div></div>
+        </div>
+
+        <div class="section-rule">📋 6 Loại Văn Bản Hành Chính</div>
+        <div class="card-grid" id="vb-grid">
+          <div class="vb-card" data-vb="0"><span class="vb-card-icon">⚖️</span><div class="vb-card-name">Quyết định</div><div class="vb-card-badge badge-gold">QĐ</div><div class="vb-card-desc">Quyết định vấn đề quan trọng. Có QĐ quy phạm và QĐ cá biệt.</div></div>
+          <div class="vb-card" data-vb="1"><span class="vb-card-icon">📨</span><div class="vb-card-name">Công văn</div><div class="vb-card-badge badge-blue">CV – Không tên loại</div><div class="vb-card-desc">Giao dịch công vụ. <strong>Không có tên loại</strong>, chỉ ghi V/v:</div></div>
+          <div class="vb-card" data-vb="2"><span class="vb-card-icon">📢</span><div class="vb-card-name">Thông báo</div><div class="vb-card-badge badge-blue">TB</div><div class="vb-card-desc">Truyền đạt thông tin về quyết định, chủ trương, lịch họp...</div></div>
+          <div class="vb-card" data-vb="3"><span class="vb-card-icon">📊</span><div class="vb-card-name">Báo cáo</div><div class="vb-card-badge badge-blue">BC</div><div class="vb-card-desc">Phản ánh tình hình, kết quả công việc. <strong>Không xin phê duyệt</strong>.</div></div>
+          <div class="vb-card" data-vb="4"><span class="vb-card-icon">📋</span><div class="vb-card-name">Tờ trình</div><div class="vb-card-badge badge-blue">TTr</div><div class="vb-card-desc">Trình cấp có thẩm quyền <strong>xem xét, phê duyệt</strong>.</div></div>
+          <div class="vb-card" data-vb="5"><span class="vb-card-icon">📝</span><div class="vb-card-name">Biên bản</div><div class="vb-card-badge badge-green">BB</div><div class="vb-card-desc">Ghi nhận diễn biến thực tế. <strong>Không bắt buộc có số ký hiệu</strong>.</div></div>
+        </div>
+
+        <div class="section-rule">📁 Lập Hồ Sơ & Con Dấu</div>
+        <div class="info-box">
+          <div class="info-box-label">⏱️ Thời hạn nộp lưu (Điều 30)</div>
+          <div class="key-list">
+            <div class="key-row"><div class="key-num">→</div><div><strong>Hồ sơ xây dựng cơ bản:</strong> 03 tháng kể từ khi công trình hoàn thành</div></div>
+            <div class="key-row"><div class="key-num">→</div><div><strong>Hồ sơ thông thường:</strong> 01 năm kể từ khi công việc kết thúc</div></div>
+            <div class="key-row"><div class="key-num">→</div><div><strong>Giữ quá hạn:</strong> Tối đa 02 năm, phải được người đứng đầu đồng ý bằng văn bản</div></div>
+          </div>
+        </div>
+        <div class="tint-box"><strong>Con dấu (Điều 32–33):</strong> Mực đỏ; đóng trùm lên <strong>1/3 chữ ký về phía bên trái</strong>. Dấu giáp lai: tối đa <strong>05 tờ</strong> mỗi dấu. Người đứng đầu giao Văn thư quản lý, sử dụng tại trụ sở.</div>
+
+        <div class="info-box">
+          <div class="info-box-label">📊 So sánh VB Đi vs VB Đến</div>
+          <div style="overflow-x:auto"><table class="cmp-table">
+            <thead><tr><th>Tiêu chí</th><th>📤 VB Đi</th><th>📥 VB Đến</th></tr></thead>
+            <tbody>
+              <tr><td>Số bước</td><td>5 bước</td><td>4 bước</td></tr>
+              <tr><td>Bước đầu tiên</td><td>Cấp số, thời gian</td><td>Tiếp nhận VB đến</td></tr>
+              <tr><td>Thời hạn</td><td>Phát hành trong ngày ký</td><td>Trình trong ngày làm việc</td></tr>
+              <tr><td>VB khẩn</td><td>Gửi ngay sau khi ký</td><td>Trình, chuyển giao & giải quyết ngay</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ══ VB: SOẠN THẢO ══ -->
+      <div class="page" id="vb-soanthao">
+        <div class="pg-stamp">6 MẪU VĂN BẢN</div>
+        <div class="pg-tag">Phần 02</div>
+        <h2 class="pg-h1">Soạn thảo 6 loại văn bản hành chính</h2>
+        <p class="pg-sub">Font: Times New Roman 14 | Khổ giấy A4 | Lề trái 30–35mm | Lề phải 15–20mm</p>
+        <div class="pg-divider"></div>
+
+        <div class="info-box"><div class="info-box-label">📐 Thể thức chung (8 thành phần bắt buộc)</div>
+          <div class="key-list">
+            <div class="key-row"><div class="key-num">1</div><div>Quốc hiệu – Tiêu ngữ</div></div>
+            <div class="key-row"><div class="key-num">2</div><div>Tên cơ quan ban hành</div></div>
+            <div class="key-row"><div class="key-num">3</div><div>Số – ký hiệu văn bản</div></div>
+            <div class="key-row"><div class="key-num">4</div><div>Địa danh, ngày tháng năm ban hành</div></div>
+            <div class="key-row"><div class="key-num">5</div><div>Tên loại và trích yếu nội dung</div></div>
+            <div class="key-row"><div class="key-num">6</div><div>Nội dung văn bản</div></div>
+            <div class="key-row"><div class="key-num">7</div><div>Chữ ký người có thẩm quyền + con dấu</div></div>
+            <div class="key-row"><div class="key-num">8</div><div>Nơi nhận (góc dưới trái)</div></div>
+          </div>
+        </div>
+
+        <!-- Mẫu 1: QĐ -->
+        <div class="section-rule">⚖️ Mẫu 1 — Quyết định bổ nhiệm</div>
+        <div class="doc-preview">
+          <div class="doc-label">MẪU QUYẾT ĐỊNH</div>
+          <div class="doc-header-row"><div class="doc-left"><div class="bold">UBND THÀNH PHỐ ĐÀ NẴNG</div><div class="bold">SỞ NỘI VỤ</div><div>Số: 45/QĐ-SNV</div></div><div class="doc-right"><div class="bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div><div class="bold uline">Độc lập – Tự do – Hạnh phúc</div><div><em>Đà Nẵng, ngày 13 tháng 5 năm 2026</em></div></div></div>
+          <div style="text-align:center;margin:16px 0 4px"><div class="bold" style="font-size:15px;text-transform:uppercase">Quyết định</div><div style="font-style:italic">Về việc bổ nhiệm công chức giữ chức vụ lãnh đạo</div></div>
+          <div style="margin:8px 0"><strong>GIÁM ĐỐC SỞ NỘI VỤ THÀNH PHỐ ĐÀ NẴNG</strong></div>
+          <div class="indent" style="font-style:italic;font-size:12px;margin:8px 0">
+            <div>Căn cứ Luật Cán bộ, công chức ngày 13 tháng 11 năm 2008;</div>
+            <div>Căn cứ Nghị định về bổ nhiệm công chức lãnh đạo;</div>
+            <div>Xét đề nghị của Trưởng phòng Tổ chức cán bộ,</div>
+          </div>
+          <div style="text-align:center;margin:8px 0"><div class="bold">QUYẾT ĐỊNH:</div></div>
+          <div class="indent">
+            <div><strong>Điều 1.</strong> Bổ nhiệm ông/bà <strong>Nguyễn Văn B</strong> giữ chức vụ <strong>Trưởng Phòng Quản lý công chức</strong> thuộc Sở Nội vụ, kể từ ngày ký.</div>
+            <div style="margin-top:4px"><strong>Điều 2.</strong> Ông/bà Nguyễn Văn B và Trưởng các phòng, ban liên quan chịu trách nhiệm thi hành.</div>
+            <div style="margin-top:4px"><strong>Điều 3.</strong> Quyết định này có hiệu lực kể từ ngày ký ban hành./.</div>
+          </div>
+          <div class="sig-row"><div class="sig-left"><strong>Nơi nhận:</strong><br>- Như Điều 2;<br>- UBND TP (để báo cáo);<br>- Lưu: VT, TCCB.</div><div class="sig-right"><strong>GIÁM ĐỐC</strong><br><em>(Đã ký và đóng dấu)</em><br><br><br><strong>Nguyễn Văn A</strong></div></div>
+        </div>
+
+        <!-- Mẫu 2: CV -->
+        <div class="section-rule">📨 Mẫu 2 — Công văn đề nghị báo cáo</div>
+        <div class="doc-preview">
+          <div class="doc-label">MẪU CÔNG VĂN</div>
+          <div class="doc-header-row"><div class="doc-left"><div class="bold">UBND THÀNH PHỐ ĐÀ NẴNG</div><div class="bold">SỞ NỘI VỤ</div><div>Số: 125/CV-SNV</div></div><div class="doc-right"><div class="bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div><div class="bold uline">Độc lập – Tự do – Hạnh phúc</div><div><em>Đà Nẵng, ngày 13 tháng 5 năm 2026</em></div></div></div>
+          <div style="margin:10px 0"><strong>Kính gửi:</strong> Các phòng, ban thuộc Sở Nội vụ thành phố Đà Nẵng.</div>
+          <div>Để phục vụ công tác tổng kết, Sở Nội vụ đề nghị các phòng, ban thực hiện:</div>
+          <div class="indent"><div>1. Rà soát, thống kê số lượng VB đi, VB đến.</div><div>2. Đánh giá tình hình lưu trữ, quản lý hồ sơ.</div><div>3. Gửi báo cáo về Văn phòng Sở trước ngày <strong>20/5/2026</strong>./.</div></div>
+          <div class="sig-row"><div class="sig-left"><strong>Nơi nhận:</strong><br>- Như kính gửi;<br>- Lưu: VT, VP.</div><div class="sig-right"><strong>GIÁM ĐỐC</strong><br><em>(Đã ký)</em><br><br><br><strong>Nguyễn Văn A</strong></div></div>
+        </div>
+
+        <!-- Mẫu 3: TB -->
+        <div class="section-rule">📢 Mẫu 3 — Thông báo lịch họp</div>
+        <div class="doc-preview">
+          <div class="doc-label">MẪU THÔNG BÁO</div>
+          <div class="doc-header-row"><div class="doc-left"><div class="bold">SỞ NỘI VỤ TP ĐÀ NẴNG</div><div>Số: 18/TB-SNV</div></div><div class="doc-right"><div class="bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div><div class="bold uline">Độc lập – Tự do – Hạnh phúc</div><div><em>Đà Nẵng, ngày 13 tháng 5 năm 2026</em></div></div></div>
+          <div style="text-align:center;margin:14px 0"><div class="bold" style="font-size:15px;text-transform:uppercase">Thông báo</div><div style="font-style:italic">Về lịch họp giao ban tháng 5 năm 2026</div></div>
+          <div class="indent"><div><strong>1. Thời gian:</strong> 08h00, thứ Hai, ngày 18/5/2026.</div><div style="margin-top:4px"><strong>2. Địa điểm:</strong> Phòng họp tầng 3, Sở Nội vụ.</div><div style="margin-top:4px"><strong>3. Thành phần:</strong> Giám đốc; Phó Giám đốc; Trưởng các phòng, ban.</div></div>
+          <div style="margin-top:8px">Thủ trưởng các đơn vị chuẩn bị nội dung và tham dự đúng giờ./.</div>
+          <div class="sig-row"><div class="sig-left"><strong>Nơi nhận:</strong><br>- Như thành phần;<br>- Lưu: VT, VP.</div><div class="sig-right"><strong>CHÁNH VĂN PHÒNG</strong><br><em>(Đã ký)</em><br><br><br><strong>Trần Thị C</strong></div></div>
+        </div>
+
+        <div class="section-rule">📊📋📝 Mẫu 4–6 — Báo cáo · Tờ trình · Biên bản</div>
+        <div class="tint-box">
+          <strong>📊 Báo cáo (BC):</strong> I. Kết quả → II. Tồn tại → III. Kiến nghị. Số: <span class="vb-card-badge badge-gold" style="font-size:8px">30/BC-SNV</span><br><br>
+          <strong>📋 Tờ trình (TTr):</strong> I. Sự cần thiết → II. Căn cứ → III. Nội dung đề xuất → IV. Kiến nghị. Số: <span class="vb-card-badge badge-gold" style="font-size:8px">08/TTr-SNV</span><br><br>
+          <strong>📝 Biên bản (BB):</strong> Thời gian, địa điểm, thành phần → Diễn biến → Kết luận → Chữ ký. <strong>Không bắt buộc có số ký hiệu.</strong>
+        </div>
+      </div>
+
+      <!-- ══ VB: TRẮC NGHIỆM ══ -->
+      <div class="page" id="vb-quiz">
+        <div class="pg-stamp">TRẮC NGHIỆM VB</div>
+        <div class="pg-tag">Phần 03</div>
+        <h2 class="pg-h1">Câu hỏi trắc nghiệm — Văn Bản Hành Chính</h2>
+        <p class="pg-sub">20 câu — nhấn đáp án rồi nhấn "Xem đáp án" để kiểm tra.</p>
+        <div class="pg-divider"></div>
+        <div class="quiz-list">
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">1</div><div>Theo Điều 10, đối với VB điện tử, cá nhân được giao soạn thảo ngoài soạn thảo nội dung còn phải làm gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Ký duyệt bản thảo trên Hệ thống</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Chuyển bản thảo và tài liệu kèm theo vào Hệ thống, cập nhật thông tin cần thiết</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Nhân bản và đóng dấu mật</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Phát hành văn bản ngay sau khi soạn xong</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Điều 10, khoản 2: Chuyển bản thảo và tài liệu kèm theo vào Hệ thống, cập nhật các thông tin cần thiết.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">2</div><div>Văn bản nào sau đây KHÔNG có tên loại văn bản?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Quyết định</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Thông báo</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Công văn</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Biên bản</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Công văn là loại VB hành chính <strong>không có tên loại</strong>.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">3</div><div>Khi ký văn bản giấy, người ký phải dùng loại bút nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Bút mực màu xanh, không dùng mực dễ phai</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Bút mực màu đen hoặc xanh tùy chọn</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Bút bi hoặc bút mực đều được</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Bút mực đỏ để dễ nhận biết</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Điều 13: "Khi ký VB dùng bút có mực màu xanh, không dùng các loại mực dễ phai."</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">4</div><div>Trình tự quản lý VB đi (Điều 14) bao gồm mấy bước và bước đầu tiên là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>3 bước, bước đầu tiên là đăng ký</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>4 bước, bước đầu tiên là nhân bản, đóng dấu</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>5 bước, bước đầu tiên là phát hành</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>5 bước, bước đầu tiên là cấp số, thời gian ban hành</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> 5 bước: ① Cấp số, thời gian ② Đăng ký ③ Nhân bản, đóng dấu ④ Phát hành ⑤ Lưu VB đi.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">5</div><div>Loại văn bản dùng để TRÌNH cấp có thẩm quyền xem xét, phê duyệt một đề án mới là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Báo cáo</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Tờ trình</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Công văn</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Quyết định</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Tờ trình dùng để trình cấp trên phê duyệt. Báo cáo chỉ phản ánh tình hình.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">6</div><div>Bản gốc văn bản điện tử sau khi phát hành được lưu ở đâu?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Lưu tại hồ sơ giấy của Văn phòng</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Lưu trên máy tính cá nhân</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Lưu tại Hệ thống và phải đóng dấu ngay sau phát hành</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Lưu theo quy định riêng của từng cơ quan</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Điều 19: Bản gốc VB điện tử phải lưu tại Hệ thống và đóng dấu ngay sau phát hành.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">7</div><div>Điểm KHÁC BIỆT giữa "ký thừa ủy quyền" và "ký thừa lệnh" là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Ký TUQ: phải có văn bản UQ, giới hạn thời gian & nội dung. Ký TL: giao cho người đứng đầu đơn vị thuộc cơ quan</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Ký TUQ chỉ cho QĐ; ký TL chỉ cho công văn</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Hai khái niệm giống nhau</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Ký TL cần văn bản ủy quyền; ký TUQ thì không</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Ký TUQ: cấp phó ký theo văn bản UQ. Ký TL: người đứng đầu đơn vị được giao ký một số loại VB.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">8</div><div>Số ký hiệu văn bản được cấp theo nguyên tắc nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Cấp trước khi ký văn bản</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Cấp theo từng tháng</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Cấp theo quý</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Cấp theo thứ tự từ 01/01 đến 31/12 hằng năm</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Điều 15: Số VB cấp từ số 01 vào ngày 01/01 và kết thúc 31/12 hằng năm.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">9</div><div>Quản lý VB ĐẾN (Điều 20) có mấy bước và bước đầu là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>4 bước, bước đầu là tiếp nhận VB đến</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>5 bước, bước đầu là đăng ký</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>4 bước, bước đầu là đăng ký</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>3 bước, bước đầu là trình chuyển giao</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> VB đến: 4 bước (tiếp nhận → đăng ký → trình, chuyển giao → giải quyết). VB đi: 5 bước.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">10</div><div>Văn bản đến có dấu chỉ mức độ khẩn phải được xử lý thế nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Trình trong ngày, giải quyết trong 24 giờ</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Trình ngày làm việc tiếp theo</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Trình và chuyển giao ngay sau khi nhận; giải quyết ngay</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Trình ngay trong ngày nhưng giải quyết theo thứ tự</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Điều 23+24: VB khẩn phải trình, chuyển giao và giải quyết NGAY SAU KHI NHẬN.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">11</div><div>VB đến KHÔNG được đăng ký tại Văn thư thì đơn vị/cá nhân có trách nhiệm giải quyết không?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Có, vẫn phải giải quyết</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Không có trách nhiệm giải quyết (trừ VB đăng ký riêng theo pháp luật)</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Giải quyết nhưng phải báo cáo lãnh đạo trước</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Có trách nhiệm nếu VB có dấu "KHẨN"</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Điều 22: VB đến không đăng ký tại Văn thư → đơn vị, cá nhân <strong>không có trách nhiệm giải quyết</strong>.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">12</div><div>Điểm khác nhau chính giữa Sao Y, Sao Lục và Trích Sao là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Sao Y: từ bản gốc; Sao Lục: từ bản nháp; Trích Sao: từ nhiều VB</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Chỉ khác về màu dấu và chữ ký</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Sao Lục có giá trị pháp lý thấp hơn Sao Y</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Sao Y: toàn bộ từ bản gốc/chính; Sao Lục: từ bản sao y; Trích Sao: một phần nội dung</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Cả ba có giá trị pháp lý như bản chính khi thực hiện đúng quy định (Điều 26).</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">13</div><div>Thời hạn nộp lưu hồ sơ xây dựng cơ bản vào Lưu trữ Cơ quan là bao lâu?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>01 tháng</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>06 tháng</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>03 tháng kể từ khi công trình hoàn thành</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>01 năm kể từ khi công trình hoàn thành</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Điều 30: Hồ sơ XDCB: 03 tháng. Hồ sơ thông thường: 01 năm.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">14</div><div>Khi đóng dấu lên chữ ký trên văn bản giấy, dấu phải trùm lên khoảng 1/3 chữ ký về phía nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Phía bên phải</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Phía bên trái</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Đóng hoàn toàn lên chữ ký</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Đóng bên cạnh, không trùm lên</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Điều 33: Dấu đóng trùm lên 1/3 chữ ký về phía bên trái. Dấu giáp lai: tối đa 05 tờ.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">15</div><div>Cơ quan nào chịu trách nhiệm trước Chính phủ về QLNN công tác văn thư?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Bộ Nội vụ</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Văn phòng Chính phủ</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Cục Văn thư và Lưu trữ Nhà nước</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Bộ Tư pháp</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Điều 35: Bộ Nội vụ chịu trách nhiệm trước Chính phủ thực hiện QLNN về công tác văn thư.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">16</div><div>Điều 16 quy định đăng ký VB đi được thực hiện bằng phương tiện nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Sổ đăng ký VB đi hoặc Hệ thống thông tin</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Chỉ được dùng Sổ đăng ký truyền thống</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Chỉ dùng Hệ thống điện tử</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Tùy từng cơ quan tự quyết định</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Điều 16: Cả Sổ VB đi và Hệ thống thông tin đều được chấp nhận.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">17</div><div>Cá nhân trước khi nghỉ hưu, thôi việc, chuyển công tác phải làm gì với hồ sơ?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Giữ lại hồ sơ và chuyển giao khi có yêu cầu</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Tiêu hủy hồ sơ có độ mật trước khi nghỉ</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Phải bàn giao toàn bộ hồ sơ, tài liệu</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Nộp thẳng vào Lưu trữ quốc gia</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Điều 31: Trước khi nghỉ hưu/thôi việc/chuyển công tác, cá nhân phải bàn giao toàn bộ hồ sơ, tài liệu.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">18</div><div>Nội dung QLNN về công tác văn thư (Điều 34) gồm bao nhiêu nhóm?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>5 nhóm</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>7 nhóm</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>6 nhóm</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>4 nhóm</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Điều 34: 7 nhóm nội dung QLNN về công tác văn thư.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">19</div><div>Bì VB đến gửi đích danh cá nhân nhưng liên quan công việc chung — cá nhân xử lý thế nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Tự giải quyết vì gửi đích danh cá nhân</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Báo cáo người đứng đầu rồi giữ lại</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Trả lại nơi gửi để gửi đúng địa chỉ cơ quan</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Cá nhân phải chuyển lại Văn thư cơ quan để đăng ký</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Điều 21: Bì VB gửi đích danh cá nhân nhưng liên quan công việc chung thì phải chuyển lại Văn thư.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">20</div><div>Danh mục hồ sơ (Điều 28) được ban hành vào thời điểm nào trong năm?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Đầu năm</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Cuối năm trước</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Giữa năm (tháng 6)</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Bất cứ thời điểm nào</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Điều 28: Danh mục hồ sơ ban hành vào đầu năm.</div></div>
+        </div>
+        <button class="quiz-score-btn" onclick="calcScore()">📊 Tính điểm của tôi</button>
+        <div id="final-score"></div>
+      </div>
+
+      <!-- ══ VB: FLASHCARD ══ -->
+      <div class="page" id="vb-fc">
+        <div class="pg-stamp">FLASHCARD VB</div>
+        <div class="pg-tag">Phần 04</div>
+        <h2 class="pg-h1">Flashcard — Văn Bản Hành Chính</h2>
+        <p class="pg-sub">Nhấn vào thẻ để lật và xem đáp án. Ôn đến khi thuộc hết!</p>
+        <div class="pg-divider"></div>
+        <div class="fc-controls">
+          <div class="info-box-label" style="margin:0">🃏 Lật thẻ để xem đáp án</div>
+          <button class="fc-reset-btn" onclick="resetFC()">↺ Đặt lại</button>
+          <div class="fc-prog-label" id="fc-prog">0 / 18 thẻ</div>
+        </div>
+        <div class="fc-grid">
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 10</div><div class="fc-q">Ai chịu trách nhiệm về bản thảo VB?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Cá nhân được giao soạn thảo</strong> chịu trách nhiệm trước người đứng đầu đơn vị và trước pháp luật.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 11</div><div class="fc-q">Bản thảo đã duyệt nhưng cần sửa → làm gì?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Phải <strong>trình lại người có thẩm quyền ký</strong> xem xét. Không được tự ý sửa rồi ban hành.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 12</div><div class="fc-q">Kiểm tra trước ký: 2 loại kiểm tra?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① <strong>Nội dung:</strong> người đứng đầu đơn vị soạn<br>② <strong>Thể thức & kỹ thuật:</strong> người được giao</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 13</div><div class="fc-q">Ký TUQ có được ủy quyền lại không?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>KHÔNG.</strong> Phải có văn bản UQ, giới hạn thời gian & nội dung.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">6 Loại VB</div><div class="fc-q">Loại VB nào không có tên loại?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Công văn</strong> — duy nhất không có tên loại. Chỉ ghi V/v: ở tiêu đề.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Phân biệt</div><div class="fc-q">Báo cáo khác Tờ trình ở điểm gì?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>BC:</strong> phản ánh thông tin<br><strong>TTr:</strong> xin cấp trên phê duyệt — có kiến nghị</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 14</div><div class="fc-q">5 bước quản lý VB đi?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Cấp số ② Đăng ký ③ Nhân bản, đóng dấu ④ Phát hành ⑤ Lưu</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Số ký hiệu</div><div class="fc-q">Số KH của QĐ, CV, BC, TB, TTr?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">QĐ: 45/QĐ-SNV &nbsp; CV: 125/CV-SNV<br>BC: 30/BC-SNV &nbsp; TB: 18/TB-SNV &nbsp; TTr: 08/TTr-SNV</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Lưu trữ</div><div class="fc-q">Bản chính VB giấy và bản gốc VB điện tử lưu ở đâu?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>VB giấy:</strong> Hồ sơ công việc<br><strong>VB điện tử:</strong> Hệ thống, đóng dấu ngay</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Phát hành</div><div class="fc-q">VB giấy phát hành chậm nhất khi nào?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Trong ngày ký, chậm nhất <strong>sáng ngày làm việc tiếp theo</strong>.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 20</div><div class="fc-q">VB đến mấy bước? Kể tên.</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>4 bước:</strong> ① Tiếp nhận ② Đăng ký ③ Trình, chuyển giao ④ Giải quyết</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 22</div><div class="fc-q">VB đến không đăng ký → đơn vị giải quyết?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>KHÔNG</strong> có trách nhiệm giải quyết (trừ VB đăng ký riêng).</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 25</div><div class="fc-q">Sao Lục được thực hiện từ đâu?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">In, chụp từ <strong>bản sao y</strong> (không phải bản gốc hay bản chính).</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 30</div><div class="fc-q">Thời hạn nộp lưu: XDCB vs thông thường?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">XDCB: <strong>03 tháng</strong><br>Thông thường: <strong>01 năm</strong></div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 31</div><div class="fc-q">Giữ hồ sơ quá hạn tối đa bao lâu?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Tối đa <strong>02 năm</strong>, phải được người đứng đầu đồng ý bằng văn bản.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 33</div><div class="fc-q">Đóng dấu lên chữ ký: trùm 1/3 phía nào?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Trùm <strong>1/3 chữ ký về phía bên trái</strong>. Dấu giáp lai: tối đa 05 tờ.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Điều 35</div><div class="fc-q">Cơ quan nào QLNN về công tác văn thư?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Bộ Nội vụ</strong> chịu trách nhiệm trước Chính phủ.</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Quyết định</div><div class="fc-q">Phân biệt QĐ quy phạm và QĐ cá biệt?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>QĐ quy phạm:</strong> quy tắc chung, áp dụng nhiều lần<br><strong>QĐ cá biệt:</strong> đối tượng cụ thể</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════ -->
+      <!-- ══ QTNL: LÝ THUYẾT ══ -->
+      <div class="page" id="qtnl-lythuyet">
+        <div class="pg-stamp">QUẢN TRỊ NHÂN LỰC</div>
+        <div class="pg-tag">Phần 05 — 6 Chương</div>
+        <h2 class="pg-h1">Lý thuyết Quản Trị Nhân Lực Đại Cương</h2>
+        <p class="pg-sub">Phương pháp dạy cũ — Vấn đáp chi tiết kèm định nghĩa, bảng so sánh, ví dụ thực tiễn</p>
+        <div class="pg-divider"></div>
+
+        <!-- ══════════════════════ CHƯƠNG 1 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#1d4ed8,#3b82f6)"><div class="ch-num">1</div><div><h2>Những Vấn Đề Chung về Quản Trị Nhân Lực</h2><p>Khái niệm · Mục tiêu · Vai trò · Chức năng · Yếu tố ảnh hưởng · Phân biệt QTNL & QLNS</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Quản trị nhân lực là gì? Trình bày mục tiêu và vai trò của QTNL.</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Khái niệm:</strong> QTNL là tổng hợp các hoạt động quản trị liên quan đến việc <strong>tuyển dụng, duy trì, phát triển, sử dụng và động viên</strong> nguồn nhân lực trong tổ chức, nhằm đạt được mục tiêu của tổ chức và đáp ứng nhu cầu của người lao động.</div>
+                <div class="exam-tip">📌 <strong>Ghi nhớ:</strong> NNL gồm 3 lực — <strong>Thể lực</strong> (sức khỏe), <strong>Trí lực</strong> (kiến thức, kỹ năng), <strong>Tâm lực</strong> (thái độ, động lực).</div>
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>🎯 Mục tiêu</h5><ul><li><strong>Tổ chức:</strong> cung cấp NNL đủ số lượng, chất lượng, đúng lúc, đúng chỗ</li><li><strong>NLĐ:</strong> thỏa mãn nhu cầu, phát triển năng lực cá nhân, thu nhập xứng đáng</li><li><strong>Xã hội:</strong> sử dụng NNL hiệu quả, giảm thất nghiệp, phát triển KT–XH</li></ul></div>
+                  <div class="mini-card"><h5>🌐 Vai trò</h5><ul><li><strong>Với tổ chức:</strong> trung tâm mọi hoạt động quản trị, quyết định năng lực cạnh tranh, xây dựng VHTC</li><li><strong>Với NLĐ:</strong> cầu nối giữa tổ chức và NLĐ, đảm bảo quyền lợi</li><li><strong>Với xã hội:</strong> nâng cao chất lượng NNL quốc gia</li></ul></div>
+                </div>
+                <div class="example-box"><strong>📌 Ví dụ thực tiễn:</strong> Vingroup đầu tư mạnh vào QTNL — tuyển 50.000 NV/năm, xây học viện VinUni để phát triển nhân tài dài hạn.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Phân biệt Quản trị nhân lực và Quản lý nhân sự.</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Lưu ý:</strong> QLNS là <em>một phần nhỏ</em> trong QTNL — QTNL có phạm vi rộng hơn, mang tính chiến lược và coi nhân lực là tài sản cần đầu tư.</div>
+                <table class="ch-table">
+                  <tr><th>Tiêu chí</th><th>QL Nhân sự (Personnel Mgmt)</th><th>QT Nhân lực (HRM)</th></tr>
+                  <tr><td>Phạm vi</td><td>Hành chính, thủ tục, hồ sơ, chấm công, bảng lương</td><td>Chiến lược toàn diện: tuyển dụng, đào tạo, đánh giá, phát triển</td></tr>
+                  <tr><td>Tầm nhìn</td><td>Ngắn hạn, phản ứng theo sự vụ</td><td>Dài hạn, gắn với chiến lược tổ chức</td></tr>
+                  <tr><td>Triết lý về NV</td><td>Chi phí cần kiểm soát</td><td>Tài sản cần đầu tư & phát triển</td></tr>
+                  <tr><td>Vai trò bộ phận</td><td>Hành chính, hỗ trợ, phục vụ</td><td>Chiến lược, cố vấn cho ban lãnh đạo</td></tr>
+                  <tr><td>Tính chất</td><td>Thụ động — phản ứng khi có vấn đề</td><td>Chủ động — dự báo và chuẩn bị trước</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Ba nhóm chức năng chính của QTNL? Nội dung từng nhóm.</div></div>
+              <div class="a-body">
+                <div class="exam-tip">📌 <strong>Mẹo ghi nhớ:</strong> <strong>T</strong>hu hút → <strong>P</strong>hát triển → <strong>D</strong>uy trì (TPD).</div>
+                <div class="ch-grid3">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">🔵 1. Thu hút NNL</h5><ul><li>Hoạch định nhân lực</li><li>Phân tích công việc</li><li>Tuyển mộ & tuyển chọn</li></ul></div>
+                  <div class="mini-card" style="border-color:#99f6e4"><h5 style="color:#0d9488;">🟢 2. Đào tạo & Phát triển</h5><ul><li>Định hướng nghề nghiệp</li><li>Đào tạo kỹ năng</li><li>Phát triển tiềm năng lãnh đạo</li><li>Quản lý sự nghiệp</li></ul></div>
+                  <div class="mini-card" style="border-color:#ddd6fe"><h5 style="color:#7c3aed;">🟣 3. Duy trì NNL</h5><ul><li>Đánh giá THCV</li><li>Thù lao lao động</li><li>Quan hệ lao động</li><li>An toàn & sức khỏe</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Các yếu tố bên trong và bên ngoài ảnh hưởng đến QTNL?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>🌐 Bên ngoài</th><th>🏢 Bên trong</th></tr>
+                  <tr><td><strong>Pháp luật & chính sách:</strong> Bộ luật LĐ 2019, lương tối thiểu vùng, BHXH</td><td><strong>Chiến lược & mục tiêu:</strong> định hướng nhu cầu nhân sự dài hạn</td></tr>
+                  <tr><td><strong>Thị trường LĐ:</strong> cung/cầu lao động, mức lương cạnh tranh, tỷ lệ thất nghiệp</td><td><strong>Văn hóa tổ chức:</strong> phong cách lãnh đạo, cam kết NV, giá trị cốt lõi</td></tr>
+                  <tr><td><strong>Kinh tế – XH:</strong> tăng trưởng/suy thoái, lạm phát, thu nhập bình quân</td><td><strong>Quy mô & cơ cấu:</strong> số lượng phòng ban, cấp quản lý, địa bàn</td></tr>
+                  <tr><td><strong>Công nghệ:</strong> tự động hóa, AI, chuyển đổi số thay đổi kỹ năng cần thiết</td><td><strong>Tài chính:</strong> ngân sách cho tuyển dụng, đào tạo, thù lao</td></tr>
+                  <tr><td><strong>VH – XH:</strong> kỳ vọng thế hệ trẻ, xu hướng làm việc linh hoạt, remote work</td><td><strong>Lãnh đạo:</strong> tầm nhìn của CEO, sự ủng hộ cho HR</td></tr>
+                </table>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Dịch COVID-19 (bên ngoài) buộc DN cắt giảm nhân sự; đồng thời chuyển đổi số (bên trong) làm tăng nhu cầu nhân lực IT.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════ CHƯƠNG 2 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#0d9488,#14b8a6)"><div class="ch-num">2</div><div><h2>Phân Tích Công Việc & Hoạch Định Nhân Lực</h2><p>PTCV · JD · JS · Phương pháp · Quy trình hoạch định · Cân đối cung–cầu</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Phân tích công việc là gì? Phân biệt các khái niệm: nhiệm vụ, vị trí, công việc, nghề.</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Phân tích công việc (Job Analysis):</strong> quá trình thu thập, phân tích và tổng hợp thông tin về nội dung, yêu cầu của công việc và điều kiện thực hiện, nhằm xác định các nhiệm vụ, trách nhiệm và KSA cần thiết.</div>
+                <table class="ch-table">
+                  <tr><th>Thuật ngữ</th><th>Định nghĩa</th><th>Ví dụ</th></tr>
+                  <tr><td><strong>Nhiệm vụ (Task)</strong></td><td>Đơn vị công việc nhỏ nhất, có điểm bắt đầu và kết thúc</td><td>"Soạn thảo hợp đồng lao động"</td></tr>
+                  <tr><td><strong>Vị trí (Position)</strong></td><td>Tập hợp nhiệm vụ do 1 người đảm nhận</td><td>"Chuyên viên nhân sự A"</td></tr>
+                  <tr><td><strong>Công việc (Job)</strong></td><td>Nhóm vị trí có nhiệm vụ tương tự</td><td>"Chuyên viên nhân sự"</td></tr>
+                  <tr><td><strong>Nghề (Occupation)</strong></td><td>Nhóm nhiều công việc tương đồng về kỹ năng</td><td>"Ngành Quản trị nhân lực"</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Ba sản phẩm đầu ra của phân tích công việc? Ứng dụng trong QTNL?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Văn bản</th><th>Nội dung chính</th><th>Mục đích sử dụng</th></tr>
+                  <tr><td><strong>1. Bản mô tả CV (JD)</strong></td><td>Tên CV, nhiệm vụ, điều kiện làm việc, quan hệ báo cáo</td><td>Tuyển dụng, đánh giá, phân công</td></tr>
+                  <tr><td><strong>2. Bản tiêu chuẩn CV (JS)</strong></td><td>Học vấn, kinh nghiệm, kỹ năng tối thiểu</td><td>Tiêu chí tuyển chọn ứng viên</td></tr>
+                  <tr><td><strong>3. Bảng yêu cầu người TH</strong></td><td>Phẩm chất, thái độ, tính cách phù hợp</td><td>Đánh giá mức độ phù hợp (culture fit)</td></tr>
+                </table>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Techcombank phân tích công việc để chuẩn hóa hơn 200 vị trí, làm cơ sở thiết lập thang bảng lương và KPI cho từng vai trò.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Các phương pháp thu thập thông tin trong PTCV? Ưu nhược điểm?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Phương pháp</th><th>Mô tả</th><th>Ưu điểm</th><th>Hạn chế</th></tr>
+                  <tr><td><strong>Phỏng vấn</strong></td><td>Phỏng vấn cá nhân / nhóm</td><td>Chi tiết, sâu; làm rõ vấn đề mơ hồ</td><td>Tốn thời gian, chi phí</td></tr>
+                  <tr><td><strong>Bảng câu hỏi</strong></td><td>Khảo sát diện rộng</td><td>Nhanh, chi phí thấp</td><td>Thiếu thông tin định tính</td></tr>
+                  <tr><td><strong>Quan sát</strong></td><td>Quan sát trực tiếp CV</td><td>Khách quan, chính xác</td><td>NV thay đổi hành vi khi bị quan sát</td></tr>
+                  <tr><td><strong>Nhật ký CV</strong></td><td>NV ghi lại hoạt động hàng ngày</td><td>Phong phú, ghi tần suất thực</td><td>Phụ thuộc hợp tác của NV</td></tr>
+                  <tr><td><strong>Chuyên gia</strong></td><td>Tư vấn từ chuyên gia nghề</td><td>Chuẩn, khách quan</td><td>Chi phí cao</td></tr>
+                </table>
+                <div class="example-box"><strong>📌 Thực tế:</strong> Các tập đoàn lớn thường kết hợp phỏng vấn + bảng hỏi để đảm bảo độ chính xác và hiệu quả chi phí.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Quy trình phân tích công việc (6 bước) và hoạch định nhân lực (5 bước)?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div>
+                    <h5 style="margin:0 0 6px 0;font-size:13px;color:#0d9488;">🔄 Quy trình PTCV (6 bước)</h5>
+                    <div class="ch-flow">
+                      <div class="ch-step"><strong>1</strong><br>Xác định mục đích</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>2</strong><br>Chọn phương pháp</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>3</strong><br>Thu thập TT</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>4</strong><br>Xử lý TT</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>5</strong><br>Dự thảo văn bản</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>6</strong><br>Ban hành & cập nhật</div>
+                    </div>
+                  </div>
+                  <div>
+                    <h5 style="margin:0 0 6px 0;font-size:13px;color:#1a56a0;">📊 Quy trình hoạch định (5 bước)</h5>
+                    <div class="ch-flow">
+                      <div class="ch-step"><strong>1</strong><br>Phân tích chiến lược (SWOT)</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>2</strong><br>Phân tích hiện trạng NNL</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>3</strong><br>Dự báo CẦU</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>4</strong><br>Dự báo CUNG</div><span class="ch-arr">→</span>
+                      <div class="ch-step"><strong>5</strong><br>Cân đối & hành động</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">5</span><div class="q-text">Các phương pháp dự báo cầu & cung nhân lực? Giải pháp cân đối?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">📉 Dự báo CẦU</h5><ul><li><strong>Xu thế (Trend):</strong> dựa vào số liệu lịch sử</li><li><strong>Tỷ lệ (Ratio):</strong> NV/doanh thu, NV/sản lượng</li><li><strong>Chuyên gia (Delphi):</strong> nhiều vòng ý kiến</li><li><strong>Tương quan:</strong> từ các biến số liên quan</li></ul></div>
+                  <div class="mini-card" style="border-color:#99f6e4"><h5 style="color:#0d9488;">📤 Dự báo CUNG</h5><ul><li><strong>Nội bộ:</strong> phân tích NV hiện có, kế hoạch thay thế, tỷ lệ nghỉ việc</li><li><strong>Bên ngoài:</strong> thị trường LĐ, trường ĐH/CĐ, đối thủ</li></ul></div>
+                </div>
+                <div class="ch-grid2">
+                  <div class="mini-card" style="border-color:#fca5a5"><h5 style="color:#dc2626;">🔴 Cầu &gt; Cung (thiếu)</h5><ul><li>Tuyển dụng thêm từ bên ngoài</li><li>Đào tạo & phát triển NV hiện có</li><li>Tăng giờ làm thêm (overtime)</li><li>Thuê ngoài (outsource)</li><li>Luân chuyển từ bộ phận khác</li></ul></div>
+                  <div class="mini-card" style="border-color:#bbf7d0"><h5 style="color:#15803d;">🟢 Cung &gt; Cầu (dư)</h5><ul><li>Tinh giản biên chế có lộ trình</li><li>Khuyến khích nghỉ hưu sớm</li><li>Điều chuyển sang bộ phận khác</li><li>Giảm giờ làm, chia sẻ việc</li><li>Tạm ngừng tuyển dụng mới</li></ul></div>
+                </div>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Viettel dự báo cần 3.000 kỹ sư AI trong 3 năm tới → lập kế hoạch đào tạo nội bộ và tuyển dụng bên ngoài từ sớm.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════ CHƯƠNG 3 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#7c3aed,#a78bfa)"><div class="ch-num">3</div><div><h2>Tuyển Dụng & Bố Trí Nhân Lực</h2><p>Tuyển mộ · Tuyển chọn · Mối quan hệ · Bố trí · Onboarding</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Phân biệt tuyển mộ và tuyển chọn? Mối quan hệ giữa hai hoạt động?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Tiêu chí</th><th>Tuyển mộ (Recruitment)</th><th>Tuyển chọn (Selection)</th></tr>
+                  <tr><td>Mục tiêu</td><td>Thu hút ứng viên tiềm năng</td><td>Chọn ra ứng viên tốt nhất</td></tr>
+                  <tr><td>Thứ tự</td><td>Diễn ra trước</td><td>Diễn ra sau</td></tr>
+                  <tr><td>Kết quả</td><td>Hồ ứng viên (talent pool)</td><td>Quyết định tuyển dụng</td></tr>
+                  <tr><td>Tính chất</td><td>Mở rộng, quảng bá</td><td>Sàng lọc, thu hẹp</td></tr>
+                </table>
+                <div class="def-box"><strong>Mối quan hệ:</strong> Tuyển mộ hiệu quả → hồ ứng viên chất lượng → tuyển chọn tốt hơn. Cả hai cùng hướng đến mục tiêu <strong>"đúng người – đúng việc – đúng thời điểm"</strong>.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">So sánh nguồn tuyển mộ nội bộ và bên ngoài? Quy trình tuyển chọn?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div class="mini-card" style="border-color:#c4b5fd"><h5 style="color:#7c3aed;">🏢 Nội bộ</h5><ul><li><strong>Hình thức:</strong> thăng chức, luân chuyển, phục hồi</li><li><strong>✅</strong> Tiết kiệm chi phí, quen văn hóa, tạo động lực</li><li><strong>❌</strong> Thiếu ý tưởng mới, dễ cạnh tranh nội bộ</li></ul></div>
+                  <div class="mini-card" style="border-color:#86efac"><h5 style="color:#15803d;">🌐 Bên ngoài</h5><ul><li><strong>Hình thức:</strong> đăng tin, headhunter, hội chợ việc, LinkedIn</li><li><strong>✅</strong> Đa dạng ứng viên, kỹ năng & ý tưởng mới</li><li><strong>❌</strong> Chi phí cao, thời gian hòa nhập dài</li></ul></div>
+                </div>
+                <div class="example-box"><strong>📌 Thực tiễn:</strong> Samsung VN ưu tiên thăng tiến nội bộ cho cấp trưởng phòng; tuyển bên ngoài cho vị trí chuyên gia kỹ thuật cao.</div>
+                <h5 style="margin:10px 0 6px 0;font-size:13px;color:#7c3aed;">🔄 Quy trình tuyển chọn</h5>
+                <div class="ch-flow">
+                  <div class="ch-step"><strong>1</strong><br>Nhận & sàng lọc hồ sơ</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>2</strong><br>Kiểm tra năng lực</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>3</strong><br>Phỏng vấn</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>4</strong><br>Thẩm tra & sức khỏe</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>5</strong><br>Quyết định tuyển</div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Bố trí nhân lực – nguyên tắc, các hình thức điều động?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Bố trí nhân lực:</strong> phân công, sắp xếp NLĐ vào vị trí công việc phù hợp. <strong>Nguyên tắc:</strong> Đúng người – Đúng việc – Đúng lúc – Đúng chỗ.</div>
+                <div class="ch-grid3">
+                  <div class="mini-card" style="border-color:#bbf7d0"><h5 style="color:#15803d;">⬆️ Thăng chức</h5><ul><li>Lên vị trí cao hơn</li><li>Căn cứ: kết quả ĐG & năng lực</li><li>Tạo động lực phấn đấu</li></ul></div>
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">↔️ Thuyên chuyển</h5><ul><li>Sang vị trí ngang hàng</li><li>Không thay đổi cấp bậc</li><li>Đáp ứng cơ cấu tổ chức</li></ul></div>
+                  <div class="mini-card" style="border-color:#99f6e4"><h5 style="color:#0d9488;">🔄 Luân chuyển</h5><ul><li>Thay đổi CV có kế hoạch</li><li>Phát triển đa kỹ năng</li><li>Chuẩn bị cho quản lý</li></ul></div>
+                  <div class="mini-card" style="border-color:#fca5a5"><h5 style="color:#dc2626;">⬇️ Xuống chức</h5><ul><li>Do không đáp ứng yêu cầu</li><li>Thường kèm giảm lương</li><li>Biện pháp cuối cùng</li></ul></div>
+                  <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#b45309;">🚪 Sa thải</h5><ul><li>Chấm dứt QHLĐ</li><li>Do vi phạm hoặc tinh giản</li><li>Phải tuân thủ pháp luật</li></ul></div>
+                  <div class="mini-card" style="border-color:#ddd6fe"><h5 style="color:#6d28d9;">🏁 Nghỉ hưu/Từ chức</h5><ul><li>Đến tuổi nghỉ hưu</li><li>Hoặc tự nguyện rời bỏ</li><li>Cần chuyển giao kiến thức</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Onboarding là gì? Vai trò và nội dung của chương trình hội nhập?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Onboarding (Hội nhập NV mới):</strong> các hoạt động giúp NLĐ mới làm quen và hòa nhập vào tổ chức, giảm bỡ ngỡ và tăng gắn kết.</div>
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>📋 Nội dung Onboarding</h5><ul><li>Giới thiệu tổ chức, lịch sử, văn hóa, giá trị cốt lõi</li><li>Hướng dẫn quy định, nội quy làm việc</li><li>Giới thiệu đồng nghiệp, quy trình làm việc</li><li>Phân công mentor/buddy hướng dẫn</li><li>Đào tạo ban đầu (induction training)</li></ul></div>
+                  <div class="mini-card"><h5>🎯 Tầm quan trọng</h5><ul><li>Giúp NV mới thích nghi nhanh, tự tin</li><li>Giảm tỷ lệ nghỉ việc trong thử việc</li><li>Tăng gắn kết và năng suất từ sớm</li><li>Xây dựng ấn tượng ban đầu tốt</li><li>Hạn chế sai sót do thiếu thông tin</li></ul></div>
+                </div>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Netflix có chương trình onboarding 90 ngày, giúp NV mới hiểu rõ văn hóa "Freedom & Responsibility". Google dùng "Noogler" orientation nổi tiếng.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════ CHƯƠNG 4 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#d97706,#fbbf24)"><div class="ch-num">4</div><div><h2>Đào Tạo & Phát Triển Nhân Lực</h2><p>Phân biệt · Quy trình 4 bước · Phương pháp OJT/Off-JT · Kirkpatrick · TNA</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Phân biệt đào tạo và phát triển nhân lực theo 5 tiêu chí? Vai trò?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Tiêu chí</th><th>Đào tạo (Training)</th><th>Phát triển (Development)</th></tr>
+                  <tr><td><strong>Thời gian</strong></td><td>Ngắn hạn, tập trung vào hiện tại</td><td>Dài hạn, hướng đến tương lai</td></tr>
+                  <tr><td><strong>Mục tiêu</strong></td><td>Nâng cao kỹ năng thực hiện CV hiện tại</td><td>Chuẩn bị năng lực cho vị trí cao hơn</td></tr>
+                  <tr><td><strong>Đối tượng</strong></td><td>NV ở mọi cấp, kể cả NV mới</td><td>NV tiềm năng, quản lý kế cận</td></tr>
+                  <tr><td><strong>Nội dung</strong></td><td>Kỹ năng cụ thể, hẹp (chuyên môn, nghiệp vụ)</td><td>Tư duy chiến lược, lãnh đạo, toàn diện</td></tr>
+                  <tr><td><strong>Kết quả</strong></td><td>Cải thiện hiệu suất ngay</td><td>Trưởng thành và thăng tiến dài hạn</td></tr>
+                </table>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Unilever VN có chương trình "Unilever Future Leaders" — kết hợp cả đào tạo CV hiện tại lẫn phát triển lãnh đạo tương lai.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Quy trình đào tạo 4 bước? Trình bày chi tiết.</div></div>
+              <div class="a-body">
+                <div class="q-steps">
+                  <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div><strong>Xác định nhu cầu đào tạo (TNA)</strong><br>
+                    <em>3 cấp độ phân tích:</em> (a) <strong>Tổ chức</strong> — chiến lược, mục tiêu cần gì? (b) <strong>Công việc</strong> — CV đòi hỏi KSA gì? (c) <strong>Cá nhân</strong> — NV thiếu gì so với yêu cầu?</div>
+                  </div>
+                  <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div><strong>Lập kế hoạch đào tạo</strong><br>
+                    Mục tiêu SMART, đối tượng, nội dung, phương pháp, thời gian, địa điểm, kinh phí.</div>
+                  </div>
+                  <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div><strong>Tổ chức thực hiện</strong><br>
+                    Triển khai chương trình theo kế hoạch — lựa chọn giảng viên, tài liệu, thiết bị.</div>
+                  </div>
+                  <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div><strong>Đánh giá hiệu quả (Kirkpatrick)</strong><br>
+                    4 cấp độ: Phản ứng → Học tập → Hành vi → Kết quả (xem chi tiết câu 4).</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">So sánh phương pháp đào tạo trong công việc (OJT) và ngoài công việc (Off-JT)?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Tiêu chí</th><th>OJT (On-the-Job Training)</th><th>Off-JT (Off-the-Job Training)</th></tr>
+                  <tr><td><strong>Địa điểm</strong></td><td>Tại nơi làm việc thực tế</td><td>Xa nơi làm việc (lớp học, hội trường)</td></tr>
+                  <tr><td><strong>Phương pháp</strong></td><td>Kèm cặp, chỉ dẫn; luân chuyển; học việc; giao CV đặc biệt</td><td>Bài giảng, hội thảo, e-learning, mô phỏng, case study, tham quan</td></tr>
+                  <tr><td><strong>✅</strong></td><td>Tiết kiệm chi phí, học gắn liền thực tế, áp dụng ngay</td><td>Kiến thức bài bản, hệ thống; tiếp xúc chuyên gia giỏi</td></tr>
+                  <tr><td><strong>❌</strong></td><td>Dễ lan truyền thói quen xấu, người hướng dẫn thiếu kỹ năng sư phạm</td><td>Chi phí cao, khó áp dụng ngay vào thực tế</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Mô hình đánh giá đào tạo Kirkpatrick 4 cấp độ? Các nội dung đào tạo phổ biến?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div>
+                    <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#d97706;">Mức 1 – Phản ứng (Reaction)</h5><p style="font-size:12px;margin:0;">Học viên có hài lòng không? → Khảo sát sau đào tạo</p></div>
+                    <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#d97706;">Mức 2 – Học tập (Learning)</h5><p style="font-size:12px;margin:0;">Kiến thức, kỹ năng tiếp thu được không? → Kiểm tra, bài test</p></div>
+                    <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#d97706;">Mức 3 – Hành vi (Behavior)</h5><p style="font-size:12px;margin:0;">Có áp dụng vào CV không? → Quan sát sau 30–90 ngày</p></div>
+                    <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#d97706;">Mức 4 – Kết quả (Results)</h5><p style="font-size:12px;margin:0;">Tác động đến tổ chức? → Doanh thu, năng suất, lỗi giảm</p></div>
+                  </div>
+                  <div>
+                    <div class="mini-card"><h5>📚 Nội dung đào tạo</h5><p style="font-size:12px;margin:0;">
+                    <span class="tag-tag">Chuyên môn nghiệp vụ</span><br>
+                    <span class="tag-tag">Kỹ năng mềm (giao tiếp, thuyết trình)</span><br>
+                    <span class="tag-tag">An toàn lao động</span><br>
+                    <span class="tag-tag">Kỹ năng lãnh đạo, quản lý</span><br>
+                    <span class="tag-tag">Chuyển đổi số, công nghệ mới</span><br>
+                    <span class="tag-tag">Ngoại ngữ, hội nhập quốc tế</span></p></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════ CHƯƠNG 5 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#dc2626,#f87171)"><div class="ch-num">5</div><div><h2>Đánh Giá THCV & Thù Lao Lao Động</h2><p>Mục đích · Quy trình 6 bước · 5 phương pháp · Các lỗi · Cấu trúc thù lao</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Khái niệm, mục đích và quy trình 6 bước của ĐGTHCV?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Đánh giá THCV (Performance Appraisal):</strong> quá trình đo lường có hệ thống mức độ hoàn thành CV của NLĐ so với <strong>tiêu chuẩn đã xác định trước</strong>, nhằm đưa ra quyết định nhân sự và kế hoạch cải thiện.</div>
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>🎯 Mục đích</h5><ul><li><strong>Hành chính:</strong> tăng lương, thưởng, thăng chức, kỷ luật</li><li><strong>Phát triển:</strong> xác định nhu cầu đào tạo, điểm mạnh–yếu</li><li><strong>Phản hồi:</strong> cải thiện hiệu suất làm việc</li><li><strong>Tổ chức:</strong> đánh giá hiệu quả tuyển dụng & đào tạo</li></ul></div>
+                  <div class="mini-card"><h5>🔄 Quy trình 6 bước</h5><ul><li><strong>1.</strong> Xác định tiêu chí & tiêu chuẩn</li><li><strong>2.</strong> Chọn phương pháp đánh giá</li><li><strong>3.</strong> Huấn luyện người đánh giá</li><li><strong>4.</strong> Thực hiện đánh giá</li><li><strong>5.</strong> Phỏng vấn phản hồi</li><li><strong>6.</strong> Ra QĐ & lập kế hoạch cải thiện</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">So sánh 5 phương pháp đánh giá THCV phổ biến?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Phương pháp</th><th>Cách thức</th><th>✅ Ưu điểm</th><th>❌ Nhược điểm</th></tr>
+                  <tr><td><strong>1. Thang đo đồ họa</strong></td><td>Chấm 1–5 từng tiêu chí</td><td>Đơn giản, dễ áp dụng đại trà</td><td>Dễ mắc lỗi trung bình</td></tr>
+                  <tr><td><strong>2. MBO</strong></td><td>Đánh giá theo mục tiêu SMART</td><td>Minh bạch, gắn với kết quả</td><td>Cần NV tự giác, quản lý giỏi</td></tr>
+                  <tr><td><strong>3. 360 độ</strong></td><td>Từ cấp trên, đồng nghiệp, cấp dưới, KH</td><td>Toàn diện, nhiều góc nhìn</td><td>Phức tạp, tốn chi phí & thời gian</td></tr>
+                  <tr><td><strong>4. Phân phối bắt buộc</strong></td><td>10%XS–70%TB–20% yếu</td><td>Ngăn lỗi trung bình</td><td>Tạo áp lực cạnh tranh</td></tr>
+                  <tr><td><strong>5. Xếp hạng (Ranking)</strong></td><td>Xếp từ giỏi nhất → kém nhất</td><td>Đơn giản cho nhóm nhỏ</td><td>Khó áp dụng tổ chức lớn</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Các lỗi thường gặp trong ĐGTHCV? Cách khắc phục?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Lỗi</th><th>Biểu hiện</th><th>Khắc phục</th></tr>
+                  <tr><td><strong>Hào quang (Halo)</strong></td><td>Một đặc điểm tốt → đánh giá toàn bộ đều tốt</td><td>Đánh giá từng tiêu chí độc lập</td></tr>
+                  <tr><td><strong>Xu hướng trung bình</strong></td><td>Cho điểm trung bình tất cả</td><td>Dùng phân phối bắt buộc; huấn luyện người ĐG</td></tr>
+                  <tr><td><strong>Khoan hồng/Nghiêm khắc</strong></td><td>Đánh giá quá cao hoặc quá thấp</td><td>Đối chiếu tiêu chuẩn khách quan</td></tr>
+                  <tr><td><strong>Thiên vị cá nhân</strong></td><td>Bị ảnh hưởng bởi quan hệ, giới tính, tuổi</td><td>Dùng 360°, quy trình minh bạch</td></tr>
+                  <tr><td><strong>Lỗi gần đây (Recency)</strong></td><td>Chỉ nhớ sự kiện gần nhất</td><td>Ghi nhật ký ĐG thường xuyên</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Thù lao lao động là gì? Phân tích cấu trúc thù lao? Nguyên tắc công bằng?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Thù lao LĐ:</strong> tổng hợp tất cả các khoản mà NLĐ nhận được từ tổ chức, bao gồm giá trị <strong>tài chính</strong> và <strong>phi tài chính</strong>.</div>
+                <div class="ch-grid3">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">💵 Tài chính trực tiếp</h5><ul><li>Lương cơ bản</li><li>Thưởng (KPI, sáng kiến)</li><li>Hoa hồng</li><li>Trợ cấp độc hại</li></ul></div>
+                  <div class="mini-card" style="border-color:#99f6e4"><h5 style="color:#0d9488;">🎁 Tài chính gián tiếp</h5><ul><li>BHXH, BHYT, BHTN</li><li>Phụ cấp đi lại, ăn trưa</li><li>Nghỉ phép có lương</li><li>Bảo hiểm sức khỏe</li></ul></div>
+                  <div class="mini-card" style="border-color:#ddd6fe"><h5 style="color:#7c3aed;">🌟 Phi tài chính</h5><ul><li>Cơ hội thăng tiến</li><li>MT làm việc tích cực</li><li>Sự công nhận, khen thưởng</li><li>Tính linh hoạt (remote)</li></ul></div>
+                </div>
+                <div class="exam-tip"><strong>📌 3 loại công bằng trong lương:</strong> <strong>Nội bộ</strong> (CV tương đương → lương tương đương) · <strong>Bên ngoài</strong> (cạnh tranh thị trường) · <strong>Cá nhân</strong> (ghi nhận đóng góp riêng).</div>
+                <div class="example-box"><strong>📌 Ví dụ:</strong> Google cung cấp thù lao phi tài chính xuất sắc: văn phòng sáng tạo, thời gian tự do 20% cho dự án cá nhân, bữa ăn miễn phí.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">5</span><div class="q-text">Các hình thức trả lương và nguyên tắc xây dựng hệ thống lương?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Hình thức</th><th>Cách tính</th><th>Phù hợp</th><th>Ưu / Nhược</th></tr>
+                  <tr><td><strong>Theo thời gian</strong></td><td>Đơn giá giờ × số giờ</td><td>CV trí tuệ, quản lý</td><td>✓ Ổn định · ✗ Không gắn NS</td></tr>
+                  <tr><td><strong>Theo sản phẩm</strong></td><td>Đơn giá × số lượng SP</td><td>SX, gia công</td><td>✓ Khuyến khích NS · ✗ Giảm CL</td></tr>
+                  <tr><td><strong>Khoán</strong></td><td>Thỏa thuận mức trọn gói</td><td>Dự án, xây dựng</td><td>✓ Chủ động · ✗ Rủi ro phát sinh</td></tr>
+                  <tr><td><strong>Hỗn hợp</strong></td><td>Lương CB + thưởng KPI</td><td>Phổ biến nhất</td><td>✓ Cân bằng · ✗ Cần KPI rõ</td></tr>
+                </table>
+                <div class="def-box"><strong>Nguyên tắc:</strong> Tuân thủ pháp luật · Minh bạch · Nhất quán · Linh hoạt — giúp hệ thống lương vừa công bằng vừa cạnh tranh.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════ CHƯƠNG 6 ══════════════════════ -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#15803d,#4ade80)"><div class="ch-num">6</div><div><h2>Quan Hệ Lao Động & Văn Hóa Tổ Chức</h2><p>HĐLĐ · TƯLĐTT · Tranh chấp · VHTC · Tác động tiêu cực & khắc phục</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Khái niệm, chủ thể và mục đích của quan hệ lao động?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>QHLĐ:</strong> quan hệ xã hội phát sinh trong việc thuê mướn, sử dụng lao động và trả lương giữa NLĐ, NSDLĐ, tổ chức đại diện và cơ quan NN có thẩm quyền.</div>
+                <div class="ch-grid3">
+                  <div class="mini-card"><h5>👷 NLĐ</h5><ul><li>Cung cấp sức lao động</li><li>Được trả lương, đãi ngộ</li><li>Quyền gia nhập công đoàn</li></ul></div>
+                  <div class="mini-card"><h5>🏭 NSDLĐ</h5><ul><li>Tuyển & sử dụng lao động</li><li>Trả lương đúng hạn</li><li>Đảm bảo ATLĐ</li></ul></div>
+                  <div class="mini-card"><h5>⚖️ Nhà nước</h5><ul><li>Ban hành pháp luật LĐ</li><li>Giám sát, thanh tra</li><li>Hòa giải tranh chấp</li></ul></div>
+                </div>
+                <div class="exam-tip"><strong>Mục đích:</strong> Đảm bảo quyền & lợi ích hợp pháp · Tạo ổn định hài hòa · Nâng cao NSLĐ · Phát triển KT–XH.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Phân loại hợp đồng lao động? Nội dung và thời gian thử việc?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">🔵 Không XĐ thời hạn</h5><ul><li>Không quy định ngày kết thúc</li><li>Cho CV ổn định, lâu dài</li><li>Chấm dứt: báo trước theo luật</li></ul></div>
+                  <div class="mini-card" style="border-color:#99f6e4"><h5 style="color:#0d9488;">🟢 Xác định thời hạn (1–36 tháng)</h5><ul><li>Ký tối đa 2 lần cùng loại</li><li>Lần 3 bắt buộc chuyển không XĐ</li><li>Phù hợp dự án, mùa vụ</li></ul></div>
+                </div>
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>📋 Nội dung HĐLĐ</h5><ul><li>Thông tin các bên</li><li>Công việc & địa điểm</li><li>Mức lương & chế độ</li><li>Thời gian làm việc, nghỉ ngơi</li><li>BHXH, BHYT</li><li>Đào tạo & chấm dứt HĐ</li></ul></div>
+                  <div class="mini-card"><h5>⏱️ Thời gian thử việc</h5><ul><li>Quản lý cấp cao: ≤ 180 ngày</li><li>Cao đẳng trở lên: ≤ 60 ngày</li><li>Chuyên môn kỹ thuật: ≤ 30 ngày</li><li>CV khác: ≤ 06 ngày</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Phân loại tranh chấp lao động? Nguyên tắc và quy trình giải quyết?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Loại</th><th>Định nghĩa</th><th>Hình thức</th></tr>
+                  <tr><td><strong>1. Cá nhân</strong></td><td>1 NLĐ vs NSDLĐ về quyền/lợi ích cá nhân</td><td>Khiếu nại, khởi kiện</td></tr>
+                  <tr><td><strong>2. Tập thể về quyền</strong></td><td>Tập thể NLĐ cho rằng NSDLĐ vi phạm thỏa ước/pháp luật</td><td>Đình công</td></tr>
+                  <tr><td><strong>3. Tập thể về lợi ích</strong></td><td>Đòi thêm quyền lợi chưa được quy định</td><td>Đình công, bãi công</td></tr>
+                </table>
+                <div class="exam-tip"><strong>5 nguyên tắc giải quyết:</strong> Tuân thủ PL · Ưu tiên thương lượng & hòa giải · Công khai, minh bạch · Tôn trọng quyền lợi các bên · Kịp thời, dứt điểm.</div>
+                <div class="example-box"><strong>📌 Quy trình:</strong> Hòa giải viên LĐ → Hội đồng trọng tài LĐ → Tòa án nhân dân. <strong>VD:</strong> Vụ đình công tại Pouyuen là tranh chấp tập thể về lợi ích liên quan đến cắt giảm trợ cấp thôi việc.</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Văn hóa tổ chức là gì? Cấu trúc 2 tầng và 4 đặc trưng?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Văn hóa tổ chức:</strong> hệ thống các <strong>giá trị, niềm tin, chuẩn mực và cách ứng xử</strong> được chia sẻ bởi các thành viên, định hướng hành vi và tạo bản sắc riêng.</div>
+                <div class="ch-grid2">
+                  <div class="mini-card" style="border-color:#c7d2fe"><h5 style="color:#1a56a0;">🔍 Tầng hữu hình</h5><ul><li><strong>Biểu tượng:</strong> logo, đồng phục</li><li><strong>Nghi thức:</strong> họp đầu tuần, kỷ niệm</li><li><strong>Câu chuyện:</strong> lịch sử, giai thoại</li><li><strong>Ngôn ngữ:</strong> thuật ngữ riêng</li></ul></div>
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#0f2544;">💡 Tầng vô hình</h5><ul><li><strong>Giá trị cốt lõi:</strong> khách hàng là trọng tâm</li><li><strong>Niềm tin:</strong> sự nhìn nhận về con người</li><li><strong>Chuẩn mực:</strong> quy tắc không thành văn</li><li><strong>Phong cách lãnh đạo:</strong> dân chủ, cởi mở</li></ul></div>
+                </div>
+                <div class="exam-tip"><strong>4 đặc trưng:</strong> 👤 Hướng tới con người (Zappos) · 👥 Hướng tới nhóm (Nhật Bản) · 🏆 Tính hiếu thắng (Amazon) · 🔒 Sự ổn định (cơ quan NN).</div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">5</span><div class="q-text">Văn hóa mạnh vs yếu? Tác động tiêu cực của VHTC và cách khắc phục?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Tiêu chí</th><th>VH Mạnh 💪</th><th>VH Yếu 😐</th></tr>
+                  <tr><td>Giá trị cốt lõi</td><td>Được chia sẻ rộng rãi</td><td>Mờ nhạt, không đồng nhất</td></tr>
+                  <tr><td>Hành vi NV</td><td>Nhất quán, có định hướng</td><td>Khác nhau, thiếu nhất quán</td></tr>
+                  <tr><td>Gắn kết</td><td>Cao, NV tự hào</td><td>Thấp, tỷ lệ nghỉ cao</td></tr>
+                  <tr><td>Thích ứng</td><td>Linh hoạt nếu được dẫn dắt</td><td>Lộn xộn khi có thay đổi</td></tr>
+                  <tr><td>Ví dụ</td><td>Apple, Google, Vingroup, FPT</td><td>Mới thành lập, vừa sáp nhập</td></tr>
+                </table>
+                <p style="font-size:12px;margin:10px 0;"><strong>🔧 Khắc phục tác động tiêu cực:</strong></p>
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>Cản trở thay đổi</h5><p style="font-size:12px;margin:0;">VH cởi mở, linh hoạt; truyền thông rõ lý do; lãnh đạo làm gương</p></div>
+                  <div class="mini-card"><h5>Hạn chế sáng tạo</h5><p style="font-size:12px;margin:0;">Không gian thử nghiệm an toàn; chấp nhận thất bại; khuyến khích ý tưởng mới</p></div>
+                  <div class="mini-card"><h5>Giảm tính đa dạng</h5><p style="font-size:12px;margin:0;">Chính sách D&I; tuyển dụng đa dạng có chủ đích</p></div>
+                  <div class="mini-card"><h5>Rào cản gia nhập</h5><p style="font-size:12px;margin:0;">Cải thiện onboarding; mentor cho NV mới; làm rõ VH từ tuyển dụng</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phụ lục: Bảng so sánh nhanh các phương pháp ĐGTHCV -->
+        <div class="chapter-block" style="margin-top:20px;">
+          <div class="ch-head" style="background:linear-gradient(90deg,#0f2544,#1a56a0)"><div class="ch-num">📋</div><div><h2>Phụ Lục: Bảng So Sánh Các Phương Pháp Đánh Giá THCV</h2><p>Tổng hợp 5 phương pháp chính — tiêu chí so sánh chi tiết</p></div></div>
+          <div class="ch-body">
+            <table class="ch-table">
+              <tr><th>Tiêu chí</th><th>Thang đo đồ họa</th><th>MBO</th><th>360 độ</th><th>Phân phối bắt buộc</th><th>Xếp hạng</th></tr>
+              <tr><td><strong>Đối tượng ĐG</strong></td><td>Cấp trên</td><td>Cấp trên + NV</td><td>Nhiều phía</td><td>Cấp trên</td><td>Cấp trên</td></tr>
+              <tr><td><strong>Mức độ khách quan</strong></td><td>Trung bình</td><td>Cao</td><td>Cao nhất</td><td>Trung bình</td><td>Thấp</td></tr>
+              <tr><td><strong>Chi phí thực hiện</strong></td><td>Thấp</td><td>Trung bình</td><td>Cao</td><td>Thấp</td><td>Thấp</td></tr>
+              <tr><td><strong>Khả năng so sánh</strong></td><td>Có</td><td>Khó</td><td>Khó</td><td>Có</td><td>Có</td></tr>
+              <tr><td><strong>Phù hợp</strong></td><td>Đại trà</td><td>Quản lý cấp trung</td><td>Phát triển lãnh đạo</td><td>Tổ chức lớn</td><td>Nhóm nhỏ</td></tr>
+              <tr><td><strong>Rủi ro lỗi</strong></td><td>Trung bình/hào quang</td><td>Thiếu mục tiêu</td><td>Thiên vị nhóm</td><td>Áp lực cạnh tranh</td><td>Chủ quan</td></tr>
+            </table>
+            <div class="exam-tip" style="margin-top:12px;">📌 <strong>Xu hướng 2024–2025:</strong> OKR (Objectives & Key Results) đang được nhiều startup VN áp dụng thay thế KPI truyền thống — tập trung vào mục tiêu định tính & kết quả then chốt.</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ QTNL: TRẮC NGHIỆM ══ -->
+      <div class="page" id="qtnl-quiz">
+        <div class="pg-stamp">TRẮC NGHIỆM QTNL</div>
+        <div class="pg-tag">Phần 06</div>
+        <h2 class="pg-h1">Câu hỏi trắc nghiệm — Quản Trị Nhân Lực</h2>
+        <p class="pg-sub">15 câu trắc nghiệm tổng hợp kiến thức 6 chương</p>
+        <div class="pg-divider"></div>
+        <div class="quiz-list">
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">1</div><div>QTNL là hệ thống các hoạt động nhằm:</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Tuyển dụng và sa thải nhân viên</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Thu hút, phát triển, sử dụng và duy trì nguồn nhân lực</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Quản lý hồ sơ nhân sự</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Tính lương và bảo hiểm</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> QTNL là hệ thống thu hút, phát triển, sử dụng và duy trì NNL.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">2</div><div>Có bao nhiêu chức năng chính của QTNL?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>2</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>4</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>3</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>5</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> 3 chức năng: Thu hút, Đào tạo & Phát triển, Duy trì nhân lực.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">3</div><div>Văn bản mô tả chi tiết nhiệm vụ, trách nhiệm của một vị trí gọi là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Bản mô tả công việc (JD)</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Bản yêu cầu người thực hiện</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Hợp đồng lao động</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Bảng tiêu chuẩn THCV</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Bản mô tả công việc (Job Description) mô tả nhiệm vụ và trách nhiệm.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">4</div><div>Quy trình hoạch định nhân lực có mấy bước?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>3 bước</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>4 bước</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>6 bước</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>5 bước</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> 5 bước: Phân tích chiến lược → Hiện trạng → Dự báo cầu → Dự báo cung → Cân đối.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">5</div><div>Phương pháp thu thập thông tin PTCV nào tốn ít thời gian và chi phí nhất?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Phỏng vấn</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Bảng câu hỏi</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Quan sát trực tiếp</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Chuyên gia tư vấn</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Bảng câu hỏi nhanh, tiết kiệm, khảo sát được nhiều người cùng lúc.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">6</div><div>Nguồn tuyển mộ nội bộ có ưu điểm gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Chi phí thấp, nhân viên quen văn hóa tổ chức</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Mang lại ý tưởng mới</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Nguồn ứng viên đa dạng</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Không cần đào tạo</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Nội bộ: chi phí thấp, quen văn hóa, nhưng hạn chế ý tưởng mới.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">7</div><div>Khi cung nhân lực &gt; cầu, doanh nghiệp nên làm gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Tuyển thêm nhân sự</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Tăng giờ làm thêm</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Tinh giản biên chế, điều chuyển</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Thuê ngoài</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Khi thừa nhân lực: tinh giản, nghỉ hưu sớm, điều chuyển, giảm giờ làm.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">8</div><div>Đào tạo khác phát triển nhân lực ở điểm nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Đào tạo dài hạn, phát triển ngắn hạn</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Không có gì khác</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Phát triển cho nhân viên mới</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Đào tạo: ngắn hạn, kỹ năng hiện tại. Phát triển: dài hạn, tương lai</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Đào tạo: ngắn hạn, nâng cao kỹ năng hiện tại. Phát triển: dài hạn, chuẩn bị tương lai.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">9</div><div>Phương pháp đào tạo nào thuộc nhóm "trong công việc"?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Hội thảo</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Kèm cặp, chỉ dẫn</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>E-learning</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Lớp học tập trung</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Kèm cặp, chỉ dẫn và luân chuyển CV là phương pháp đào tạo trong công việc.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">10</div><div>Mục đích chính của đánh giá THCV là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Đo lường kết quả làm việc so với tiêu chuẩn</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Kỷ luật nhân viên</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Cắt giảm lương</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Giảm số lượng nhân viên</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> ĐGTHCV là đo lường kết quả làm việc so với tiêu chuẩn đã đề ra.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">11</div><div>Yếu tố nào KHÔNG ảnh hưởng đến thù lao lao động?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Thị trường lao động</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Khả năng tài chính doanh nghiệp</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Màu sắc văn phòng</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Giá trị công việc</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Màu sắc văn phòng không ảnh hưởng đến thù lao.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">12</div><div>Hợp đồng lao động là gì?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Thỏa thuận giữa NLĐ và công đoàn</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>VB cam kết không vi phạm nội quy</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Quyết định tuyển dụng của DN</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Thỏa thuận về việc làm có trả công giữa NLĐ và NSDLĐ</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> HĐLĐ là thỏa thuận giữa NLĐ và NSDLĐ về việc làm có trả công.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">13</div><div>Cấp độ "công việc" (Job) khác "vị trí" (Position) ở điểm nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Công việc là đơn vị nhỏ nhất</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Công việc là nhóm vị trí có nhiệm vụ tương tự</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Công việc gồm nhiều nghề</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Không có gì khác</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Công việc = nhóm vị trí có nhiệm vụ tương tự. Vị trí = 1 người đảm nhận.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">14</div><div>Văn hóa tổ chức bao gồm những yếu tố nào?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Giá trị cốt lõi, biểu tượng, nghi lễ, ngôn ngữ, câu chuyện</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Chỉ có giá trị cốt lõi và logo</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Lương thưởng và phúc lợi</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Quy trình tuyển dụng</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> VHTC gồm: giá trị cốt lõi, biểu tượng, nghi lễ, ngôn ngữ, câu chuyện/huyền thoại.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">15</div><div>Cơ quan nào có trách nhiệm chính trong quản lý quan hệ lao động?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Bộ Tài chính</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Bộ Kế hoạch và Đầu tư</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Bộ Lao động – Thương binh và Xã hội</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Phòng Nhân sự</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Bộ LĐ-TB&XH (nay là Bộ Nội vụ) chịu trách nhiệm QLNN về QHLĐ.</div></div>
+        </div>
+        <button class="quiz-score-btn" onclick="calcScore()">📊 Tính điểm của tôi</button>
+      </div>
+
+      <!-- ══ QTNL: FLASHCARD ══ -->
+      <div class="page" id="qtnl-fc">
+        <div class="pg-stamp">FLASHCARD QTNL</div>
+        <div class="pg-tag">Phần 07</div>
+        <h2 class="pg-h1">Flashcard — Quản Trị Nhân Lực</h2>
+        <p class="pg-sub">12 thẻ ghi nhớ nhanh các khái niệm cốt lõi</p>
+        <div class="pg-divider"></div>
+        <div class="fc-controls">
+          <div class="info-box-label" style="margin:0">🃏 Lật thẻ để xem đáp án</div>
+          <button class="fc-reset-btn" onclick="resetFC()">↺ Đặt lại</button>
+          <div class="fc-prog-label">0 / 12 thẻ</div>
+        </div>
+        <div class="fc-grid">
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">QTNL</div><div class="fc-q">3 chức năng chính của QTNL?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Thu hút nhân lực<br>② Đào tạo & Phát triển<br>③ Duy trì nhân lực</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">PTCV</div><div class="fc-q">3 loại văn bản của PTCV?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Bản mô tả CV (JD)<br>② Bản tiêu chuẩn THCV<br>③ Bản yêu cầu người TH</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Hoạch định</div><div class="fc-q">5 bước hoạch định nhân lực?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① PT chiến lược ② PT hiện trạng ③ Dự báo cầu ④ Dự báo cung ⑤ Cân đối & hành động</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Cung–Cầu</div><div class="fc-q">Cầu &gt; Cung → giải pháp?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Tuyển thêm, đào tạo, tăng giờ, thuê ngoài, luân chuyển</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Tuyển dụng</div><div class="fc-q">2 nguồn tuyển mộ chính?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Nội bộ:</strong> thăng chức, luân chuyển<br><strong>Bên ngoài:</strong> headhunter, trường học, hội chợ</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Đào tạo</div><div class="fc-q">2 nhóm phương pháp đào tạo?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Trong CV:</strong> kèm cặp, luân chuyển<br><strong>Ngoài CV:</strong> lớp học, hội thảo, e-learning</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">ĐGTHCV</div><div class="fc-q">3 mục đích của ĐGTHCV?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Hành chính (lương, thưởng)<br>② Phát triển (đào tạo)<br>③ Giao tiếp (phản hồi)</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Thù lao</div><div class="fc-q">Các yếu tố ảnh hưởng đến thù lao?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>Ngoài:</strong> thị trường, luật pháp, sinh hoạt phí<br><strong>Trong:</strong> tài chính, giá trị CV, kết quả, thâm niên</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">QHLĐ</div><div class="fc-q">3 nội dung chính của QHLĐ?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Hợp đồng lao động<br>② Thỏa ước LĐ tập thể<br>③ Tranh chấp & giải quyết tranh chấp</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">VHTC</div><div class="fc-q">5 yếu tố cấu thành văn hóa tổ chức?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Giá trị cốt lõi ② Biểu tượng ③ Nghi lễ ④ Ngôn ngữ ⑤ Câu chuyện</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Yếu tố</div><div class="fc-q">Các yếu tố bên ngoài ảnh hưởng QTNL?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Pháp luật, thị trường LĐ, kinh tế–xã hội, công nghệ, văn hóa–xã hội</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Tuyển chọn</div><div class="fc-q">Quy trình tuyển chọn?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Nhận hồ sơ → ② Sàng lọc → ③ Phỏng vấn → ④ Kiểm tra → ⑤ Quyết định</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════ -->
+      <!-- ══ LVN: LÝ THUYẾT ══ -->
+      <!-- ═══════════════════════════════════════════════════ -->
+      <div class="page" id="lvn-lythuyet">
+        <div class="pg-stamp">KỸ NĂNG LÀM VIỆC NHÓM</div>
+        <div class="pg-tag">Phần 08 — 3 Chương</div>
+        <h2 class="pg-h1">Lý thuyết Kỹ Năng Làm Việc Nhóm</h2>
+        <p class="pg-sub">Các giai đoạn phát triển nhóm · Quản lý họp & xung đột · Lãnh đạo & giao tiếp</p>
+        <div class="pg-divider"></div>
+
+        <!-- Chương 1: Nhóm & Tuckman -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#1a56a0,#3b82f6)"><div class="ch-num">1</div><div><h2>Nhóm & Các Giai Đoạn Phát Triển Nhóm</h2><p>Khái niệm · Phân loại · Mô hình Tuckman · Vai trò nhóm</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Khái niệm nhóm và tầm quan trọng của làm việc nhóm?</div></div>
+              <div class="a-body">
+                <div class="def-box"><strong>Nhóm:</strong> tập hợp ít nhất 2 người trở lên cùng tương tác, cùng mục tiêu chung và có mối quan hệ phụ thuộc lẫn nhau để hoàn thành nhiệm vụ.</div>
+                <ul class="pt-list">
+                  <li><strong>Tầm quan trọng:</strong> Tận dụng trí tuệ tập thể, bổ sung kỹ năng, tăng sáng tạo, giảm rủi ro, nâng cao tinh thần và cam kết.</li>
+                  <li><strong>VD:</strong> Nhóm dự án tại FPT gồm 5–7 thành viên từ các bộ phận khác nhau, mỗi người đóng góp chuyên môn riêng.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Phân loại nhóm trong tổ chức?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>📋 Nhóm chính thức</h5><ul><li>Nhóm chức năng (phòng ban)</li><li>Nhóm dự án (task force)</li><li>Nhóm quản lý (ban giám đốc)</li><li>Nhóm ảo (mạng nội bộ)</li></ul></div>
+                  <div class="mini-card"><h5>🤝 Nhóm không chính thức</h5><ul><li>Nhóm sở thích</li><li>Nhóm bạn bè</li><li>Nhóm quan tâm</li><li>Hình thành tự nhiên</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Mô hình Tuckman: 5 giai đoạn phát triển nhóm?</div></div>
+              <div class="a-body">
+                <div class="ch-flow">
+                  <div class="ch-step"><strong>1</strong><br>Forming<br><span style="font-size:9px">Hình thành</span></div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>2</strong><br>Storming<br><span style="font-size:9px">Xung đột</span></div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>3</strong><br>Norming<br><span style="font-size:9px">Chuẩn hóa</span></div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>4</strong><br>Performing<br><span style="font-size:9px">Hoạt động</span></div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>5</strong><br>Adjourning<br><span style="font-size:9px">Kết thúc</span></div>
+                </div>
+                <ul class="pt-list" style="margin-top:8px">
+                  <li><strong>1. Forming:</strong> Thành viên làm quen, phụ thuộc leader, chưa rõ mục tiêu. Leader cần định hướng, tạo an toàn.</li>
+                  <li><strong>2. Storming:</strong> Xung đột quan điểm, phân chia vai trò. Leader cần lắng nghe, dung hòa, thiết lập quy tắc.</li>
+                  <li><strong>3. Norming:</strong> Thống nhất quy tắc, chuẩn mực chung. Leader tạo sự gắn kết.</li>
+                  <li><strong>4. Performing:</strong> Nhóm đạt hiệu suất cao, tự quản. Leader phân quyền, hỗ trợ.</li>
+                  <li><strong>5. Adjourning:</strong> Hoàn thành nhiệm vụ, giải tán hoặc chuyển đổi. Leader tổng kết, ghi nhận.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Các vai trò trong nhóm (Belbin)?</div></div>
+              <div class="a-body">
+                <div class="ch-grid3">
+                  <div class="mini-card"><h5>🧠 Vai trò trí tuệ</h5><ul><li>Thực vật (Plant): ý tưởng mới</li><li>Chuyên gia (Specialist): kiến thức sâu</li><li>Đánh giá (ME): phân tích logic</li></ul></div>
+                  <div class="mini-card"><h5>👥 Vai trò xã hội</h5><ul><li>Phối hợp (Co-ordinator): điều phối</li><li>Hòa giải (TW): gắn kết</li><li>Dò mìn (RI): khám phá cơ hội</li></ul></div>
+                  <div class="mini-card"><h5>⚡ Vai trò hành động</h5><ul><li>Đẩy việc (Shaper): tạo động lực</li><li>Triển khai (Implementer): biến ý tưởng thành hành động</li><li>Hoàn thiện (CF): kiểm tra chi tiết</li></ul></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chương 2: Họp & Xung đột -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#0d9488,#14b8a6)"><div class="ch-num">2</div><div><h2>Quản Lý Cuộc Họp & Giải Quyết Xung Đột</h2><p>Quy trình họp · Các loại xung đột · Phương pháp giải quyết</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Quy trình tổ chức một cuộc họp nhóm hiệu quả?</div></div>
+              <div class="a-body">
+                <div class="ch-flow">
+                  <div class="ch-step"><strong>1</strong><br>Xác định mục tiêu</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>2</strong><br>Chuẩn bị nội dung</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>3</strong><br>Mời & gửi tài liệu</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>4</strong><br>Tổ chức họp</div><span class="ch-arr">→</span>
+                  <div class="ch-step"><strong>5</strong><br>Biên bản & follow-up</div>
+                </div>
+                <ul class="pt-list">
+                  <li><strong>Trước họp:</strong> Agenda rõ ràng, gửi trước 24h, chuẩn bị tài liệu</li>
+                  <li><strong>Trong họp:</strong> Bắt đầu đúng giờ, kiểm soát thời gian, khuyến khích tham gia</li>
+                  <li><strong>Sau họp:</strong> Gửi biên bản trong 24h, theo dõi action items</li>
+                </ul>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Các loại xung đột trong nhóm?</div></div>
+              <div class="a-body">
+                <div class="ch-grid3">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">💡 Xung đột nhận thức</h5><ul><li>Khác biệt về ý kiến, quan điểm</li><li>Có thể mang lại sáng tạo</li><li>Cần tranh luận xây dựng</li></ul></div>
+                  <div class="mini-card" style="border-color:#fca5a5"><h5 style="color:#dc2626;">💢 Xung đột quan hệ</h5><ul><li>Mâu thuẫn cá nhân</li><li>Gây giảm hiệu suất</li><li>Can thiệp để hòa giải</li></ul></div>
+                  <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#b45309;">⚙️ Xung đột quy trình</h5><ul><li>Bất đồng về cách làm</li><li>Phân chia nhiệm vụ</li><li>Thiết lập quy tắc rõ</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Các phong cách giải quyết xung đột (Thomas–Kilmann)?</div></div>
+              <div class="a-body">
+                <div class="ch-grid2">
+                  <div class="mini-card"><h5>Cạnh tranh (Competing)</h5><ul><li>Khẳng định cao, hợp tác thấp</li><li>Dùng quyền lực, quyết định nhanh</li></ul></div>
+                  <div class="mini-card"><h5>Hợp tác (Collaborating)</h5><ul><li>Khẳng định cao, hợp tác cao</li><li>Giải pháp win–win, tốn thời gian</li></ul></div>
+                  <div class="mini-card"><h5>Thỏa hiệp (Compromising)</h5><ul><li>Trung dung cả hai</li><li>Mỗi bên nhượng bộ một phần</li></ul></div>
+                  <div class="mini-card"><h5>Lảng tránh (Avoiding)</h5><ul><li>Khẳng định thấp, hợp tác thấp</li><li>Trì hoãn, rút lui</li></ul></div>
+                  <div class="mini-card" style="grid-column:1/-1"><h5>Nhượng bộ (Accommodating)</h5><ul><li>Khẳng định thấp, hợp tác cao</li><li>Đặt lợi ích người khác lên trước</li></ul></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chương 3: Lãnh đạo & Giao tiếp -->
+        <div class="chapter-block">
+          <div class="ch-head" style="background:linear-gradient(90deg,#7c3aed,#a78bfa)"><div class="ch-num">3</div><div><h2>Lãnh Đạo Nhóm & Giao Tiếp Hiệu Quả</h2><p>Phong cách lãnh đạo · Kỹ năng giao tiếp · Phản hồi · Ra quyết định</p></div></div>
+          <div class="ch-body">
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">1</span><div class="q-text">Các phong cách lãnh đạo nhóm?</div></div>
+              <div class="a-body">
+                <div class="ch-grid3">
+                  <div class="mini-card" style="border-color:#bfdbfe"><h5 style="color:#1d4ed8;">👑 Độc đoán</h5><ul><li>Leader quyết định mọi việc</li><li>Nhanh, rõ ràng</li><li>Giảm sáng tạo</li><li>Phù hợp khẩn cấp</li></ul></div>
+                  <div class="mini-card" style="border-color:#bbf7d0"><h5 style="color:#15803d;">🤝 Dân chủ</h5><ul><li>Leader tham khảo ý kiến</li><li>Tăng gắn kết</li><li>Tốn thời gian</li><li>Phù hợp sáng tạo</li></ul></div>
+                  <div class="mini-card" style="border-color:#fde68a"><h5 style="color:#b45309;">🔄 Ủy quyền</h5><ul><li>Leader giao quyền</li><li>Nhóm tự quản</li><li>Phù hợp nhóm chuyên nghiệp</li></ul></div>
+                </div>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">2</span><div class="q-text">Kỹ năng giao tiếp hiệu quả trong nhóm?</div></div>
+              <div class="a-body">
+                <ul class="pt-list">
+                  <li><strong>Lắng nghe chủ động:</strong> Tập trung, đặt câu hỏi, tóm tắt ý chính, không ngắt lời</li>
+                  <li><strong>Phản hồi theo SBI:</strong> Situation → Behavior → Impact (Tình huống → Hành vi → Tác động)</li>
+                  <li><strong>Ngôn ngữ cơ thể:</strong> Giao tiếp mắt, tư thế mở, gật đầu khuyến khích</li>
+                  <li><strong>Đặt câu hỏi mở:</strong> "What do you think?" thay vì "Do you agree?"</li>
+                </ul>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">3</span><div class="q-text">Các phương pháp ra quyết định nhóm?</div></div>
+              <div class="a-body">
+                <table class="ch-table">
+                  <tr><th>Phương pháp</th><th>Mô tả</th><th>Khi nào dùng</th></tr>
+                  <tr><td>Biểu quyết đa số</td><td>50%+1 quyết định</td><td>Nhanh, ít tranh cãi</td></tr>
+                  <tr><td>Đồng thuận</td><td>Mọi thành viên đồng ý</td><td>Quyết định quan trọng</td></tr>
+                  <tr><td>Chuyên gia quyết định</td><td>Người có chuyên môn quyết</td><td>Vấn đề kỹ thuật</td></tr>
+                  <tr><td>Brainstorming → Vote</td><td>Thu thập ý kiến → chọn</td><td>Cần sáng tạo</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="q-block">
+              <div class="q-label"><span class="q-num">4</span><div class="q-text">Tuckman mở rộng: thêm giai đoạn nào?</div></div>
+              <div class="a-body">
+                <div class="def-box">Ngoài 5 giai đoạn cổ điển, một số tài liệu bổ sung thêm <strong>Reforming/Transforming</strong> (Tái cấu trúc) khi nhóm có thành viên mới hoặc mục tiêu thay đổi, quay lại Forming nhưng ở cấp độ cao hơn. Giai đoạn <strong>Norming→Storming→Re-norming</strong> cũng có thể lặp lại khi có biến động.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LVN: TRẮC NGHIỆM ══ -->
+      <div class="page" id="lvn-quiz">
+        <div class="pg-stamp">TRẮC NGHIỆM KNL</div>
+        <div class="pg-tag">Phần 09</div>
+        <h2 class="pg-h1">Câu hỏi trắc nghiệm — Kỹ Năng Làm Việc Nhóm</h2>
+        <p class="pg-sub">10 câu kiểm tra kiến thức về nhóm, họp, xung đột và lãnh đạo</p>
+        <div class="pg-divider"></div>
+        <div class="quiz-list">
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">1</div><div>Mô hình Tuckman có mấy giai đoạn?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>3</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>4</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>5</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>6</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> 5 giai đoạn: Forming, Storming, Norming, Performing, Adjourning.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">2</div><div>Giai đoạn nào trong Tuckman thường xuất hiện xung đột quan điểm?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Storming</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Forming</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Norming</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Performing</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Storming là giai đoạn xung đột quan điểm, phân chia vai trò.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">3</div><div>Phong cách giải quyết xung đột nào hướng tới giải pháp win–win?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Cạnh tranh</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Hợp tác</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Thỏa hiệp</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Lảng tránh</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> Hợp tác (Collaborating) tìm giải pháp đáp ứng lợi ích cả hai bên.</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">4</div><div>Vai trò nào của Belbin chịu trách nhiệm đưa ra ý tưởng mới?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Phối hợp</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Đánh giá</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Hoàn thiện</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Thực vật (Plant)</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Thực vật (Plant) là người sáng tạo, đưa ra ý tưởng mới.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">5</div><div>Quy trình họp đúng gồm mấy bước chính?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>2 bước</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>4 bước</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>5 bước</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>6 bước</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> 5 bước: Mục tiêu → Chuẩn bị → Mời → Tổ chức → Biên bản & follow-up.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">6</div><div>Phong cách lãnh đạo nào phù hợp nhất với nhóm chuyên nghiệp, tự quản?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Ủy quyền</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Độc đoán</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Dân chủ</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Tự do</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Ủy quyền (Laissez-faire) phù hợp với nhóm chuyên nghiệp, có năng lực tự quản.</div></div>
+          <div class="quiz-card" data-answer="B"><div class="quiz-q"><div class="quiz-qnum">7</div><div>Kỹ năng phản hồi SBI là viết tắt của?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Situation – Behavior – Idea</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Situation – Behavior – Impact</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Status – Behavior – Impact</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Situation – Belief – Impact</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án B.</strong> SBI = Situation (tình huống) → Behavior (hành vi) → Impact (tác động).</div></div>
+          <div class="quiz-card" data-answer="D"><div class="quiz-q"><div class="quiz-qnum">8</div><div>Xung đột nào có thể mang lại lợi ích sáng tạo cho nhóm?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Xung đột quan hệ</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Xung đột quy trình</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Xung đột cá nhân</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Xung đột nhận thức</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án D.</strong> Xung đột nhận thức (về ý kiến/quan điểm) có thể mang lại sáng tạo.</div></div>
+          <div class="quiz-card" data-answer="A"><div class="quiz-q"><div class="quiz-qnum">9</div><div>Phương pháp ra quyết định nhóm nào phù hợp khi cần quyết định nhanh?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Biểu quyết đa số</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Đồng thuận</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Brainstorming</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Chuyên gia quyết</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án A.</strong> Biểu quyết đa số (50%+1) nhanh, ít tranh cãi.</div></div>
+          <div class="quiz-card" data-answer="C"><div class="quiz-q"><div class="quiz-qnum">10</div><div>Nhóm không chính thức trong tổ chức hình thành dựa trên?</div></div><div class="quiz-opts"><div class="opt" data-opt="A"><div class="opt-lbl">A</div><div>Quyết định của lãnh đạo</div></div><div class="opt" data-opt="B"><div class="opt-lbl">B</div><div>Phân công nhiệm vụ</div></div><div class="opt" data-opt="C"><div class="opt-lbl">C</div><div>Sở thích, quan hệ tự nhiên</div></div><div class="opt" data-opt="D"><div class="opt-lbl">D</div><div>Cơ cấu tổ chức</div></div></div><button class="quiz-reveal-btn">Xem đáp án</button><div class="quiz-explain">✅ <strong>Đáp án C.</strong> Nhóm không chính thức hình thành tự nhiên dựa trên sở thích, quan hệ bạn bè.</div></div>
+        </div>
+        <button class="quiz-score-btn" onclick="calcScore()">📊 Tính điểm của tôi</button>
+      </div>
+
+      <!-- ══ LVN: FLASHCARD ══ -->
+      <div class="page" id="lvn-fc">
+        <div class="pg-stamp">FLASHCARD KNL</div>
+        <div class="pg-tag">Phần 10</div>
+        <h2 class="pg-h1">Flashcard — Kỹ Năng Làm Việc Nhóm</h2>
+        <p class="pg-sub">10 thẻ ghi nhớ các khái niệm quan trọng</p>
+        <div class="pg-divider"></div>
+        <div class="fc-controls">
+          <div class="info-box-label" style="margin:0">🃏 Lật thẻ để xem đáp án</div>
+          <button class="fc-reset-btn" onclick="resetFC()">↺ Đặt lại</button>
+          <div class="fc-prog-label">0 / 10 thẻ</div>
+        </div>
+        <div class="fc-grid">
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Tuckman</div><div class="fc-q">5 giai đoạn phát triển nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Forming → Storming → Norming → Performing → Adjourning</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Xung đột</div><div class="fc-q">3 loại xung đột trong nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Nhận thức (ý kiến)<br>② Quan hệ (cá nhân)<br>③ Quy trình (cách làm)</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Thomas–Kilmann</div><div class="fc-q">5 phong cách giải quyết xung đột?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Cạnh tranh · Hợp tác · Thỏa hiệp · Lảng tránh · Nhượng bộ</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Belbin</div><div class="fc-q">3 nhóm vai trò trong nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Trí tuệ (Plant, Specialist, ME)<br>② Xã hội (Co-ordinator, TW, RI)<br>③ Hành động (Shaper, Implementer, CF)</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Họp</div><div class="fc-q">Quy trình họp 5 bước?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Mục tiêu → ② Chuẩn bị → ③ Mời → ④ Tổ chức → ⑤ Biên bản</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Lãnh đạo</div><div class="fc-q">3 phong cách lãnh đạo nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">① Độc đoán (nhanh, khẩn cấp)<br>② Dân chủ (sáng tạo)<br>③ Ủy quyền (chuyên nghiệp)</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Giao tiếp</div><div class="fc-q">Mô hình phản hồi SBI?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a"><strong>S</strong>ituation (tình huống) → <strong>B</strong>ehavior (hành vi) → <strong>I</strong>mpact (tác động)</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Ra quyết định</div><div class="fc-q">4 phương pháp ra quyết định nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Đa số · Đồng thuận · Chuyên gia · Brainstorming→Vote</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Storming</div><div class="fc-q">Leader nên làm gì ở giai đoạn Storming?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Lắng nghe, dung hòa, thiết lập quy tắc ứng xử, hướng về mục tiêu chung</div></div></div></div>
+          <div class="fc" onclick="flipFC(this)"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Nhóm</div><div class="fc-q">Định nghĩa nhóm?</div><div class="fc-hint">Nhấn để lật</div></div><div class="fc-back"><div class="fc-a">Tập hợp ≥2 người, tương tác, cùng mục tiêu chung, phụ thuộc lẫn nhau</div></div></div></div>
+        </div>
+      </div>
+
+    </div>  <!-- end content-scroll -->
+  </main>
+</div>  <!-- end app -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CANVAS
+═══════════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const papers = Array.from({length:15}, () => ({
+    x: Math.random()*1200, y: Math.random()*800,
+    w: 22+Math.random()*30, rot: (Math.random()-.5)*.8,
+    vx: (Math.random()-.5)*.2, vy: .1+Math.random()*.2,
+    vr: (Math.random()-.5)*.005, a: .03+Math.random()*.06,
+    lines: Math.random()>.4, stamp: Math.random()>.7,
+    color: Math.random()>.5 ? '#ede8dc' : '#c8a435'
+  }));
+  const dots = Array.from({length:40}, () => ({
+    x: Math.random()*1200, y: Math.random()*800,
+    r: .5+Math.random()*1.5, vx: (Math.random()-.5)*.12, vy: (Math.random()-.5)*.12,
+    life:0, max: 180+Math.random()*360, a: .08+Math.random()*.12,
+    c: ['#c8a435','#ede8dc','#c0392b'][Math.floor(Math.random()*3)]
+  }));
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    papers.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      if(p.y>H+80){ p.y=-80; p.x=Math.random()*W; }
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.globalAlpha=p.a;
+      const h=p.w*1.35;
+      ctx.fillStyle=p.color; ctx.strokeStyle='rgba(200,164,53,.3)'; ctx.lineWidth=.5;
+      ctx.beginPath(); ctx.roundRect(-p.w/2,-h/2,p.w,h,2); ctx.fill(); ctx.stroke();
+      if(p.lines){ ctx.globalAlpha=p.a*.6; ctx.strokeStyle='rgba(80,100,140,.4)'; ctx.lineWidth=.4;
+        for(let i=1;i<5;i++){ const ly=-h/2+i*(h/5); ctx.beginPath(); ctx.moveTo(-p.w/2+3,ly); ctx.lineTo(p.w/2-3,ly); ctx.stroke(); }}
+      if(p.stamp){ ctx.globalAlpha=p.a*1.3; ctx.strokeStyle='rgba(192,57,43,.5)'; ctx.lineWidth=.7;
+        ctx.beginPath(); ctx.arc(p.w/2-7,h/2-7,5,0,Math.PI*2); ctx.stroke(); }
+      ctx.restore();
+    });
+    dots.forEach(d => {
+      d.x+=d.vx; d.y+=d.vy; d.life++;
+      if(d.life>d.max){ d.life=0; d.x=Math.random()*W; d.y=Math.random()*H; }
+      const a=d.a*Math.sin(Math.PI*d.life/d.max);
+      ctx.globalAlpha=a; ctx.fillStyle=d.c;
+      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+const PAGE_NAMES = {
+  home:'Tổng quan',
+  'vb-lythuyet':'Lý thuyết VBHC','vb-soanthao':'Soạn thảo VB','vb-quiz':'Trắc nghiệm VB','vb-fc':'Flashcard VB',
+  'qtnl-lythuyet':'Lý thuyết QTNL','qtnl-quiz':'Trắc nghiệm QTNL','qtnl-fc':'Flashcard QTNL',
+  'lvn-lythuyet':'Lý thuyết KNL','lvn-quiz':'Trắc nghiệm KNL','lvn-fc':'Flashcard KNL'
+};
+const visited = new Set();
+
+function goTo(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if(page) page.classList.add('active');
+  const navEl = document.querySelector(`[data-page="${id}"]`);
+  if(navEl) navEl.classList.add('active');
+  document.getElementById('topbar-current').textContent = PAGE_NAMES[id]||id;
+  visited.add(id);
+  updateProgress();
+  const scroller = document.querySelector('.content-scroll');
+  if(scroller) scroller.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    goTo(item.dataset.page);
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS
+═══════════════════════════════════════════════════ */
+function updateProgress() {
+  const totalPages = 9;
+  const pagesVisited = [...visited].filter(v=>v!=='home').length;
+  const secPct = Math.round(pagesVisited/totalPages*100);
+
+  const fcTotal = document.querySelectorAll('.fc').length;
+  const fcFlipped = parseInt(document.querySelector('#fc-prog')?.textContent?.split('/')[0]?.trim()) || 0;
+
+  const qTotal = document.querySelectorAll('.quiz-card').length;
+  const qDone = document.querySelectorAll('.quiz-card[data-selected]').length;
+  const qPct = qTotal ? Math.round(qDone/qTotal*100) : 0;
+
+  const overall = Math.min(100, Math.round((secPct*1.5 + qPct*0.75 + (fcTotal ? (fcFlipped/fcTotal*100) : 0)*0.75)/(1.5+0.75+0.75)));
+  document.getElementById('sp-fill').style.width = overall+'%';
+  document.getElementById('sp-pct').textContent = overall+'%';
+  document.getElementById('stat-text').textContent = `Tiến độ: ${overall}% · ${pagesVisited}/${totalPages} phần`;
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════ */
+let isDark = true;
+const themeBtn = document.getElementById('theme-btn');
+if(themeBtn) {
+  themeBtn.addEventListener('click', () => {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark?'dark':'light');
+    themeBtn.innerHTML = isDark
+      ? '<span class="icon">☀️</span><span class="sf-label">Light mode</span>'
+      : '<span class="icon">🌙</span><span class="sf-label">Dark mode</span>';
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════ */
+const modal = document.getElementById('modal');
+const modalBody = document.getElementById('modal-body');
+if(modal && modalBody) {
+  document.getElementById('modal-close')?.addEventListener('click', ()=>modal.classList.remove('open'));
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.classList.remove('open'); });
+}
+
+document.querySelectorAll('#vb-grid .vb-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = card.dataset.vb;
+    const content = document.getElementById('vbd-'+idx);
+    if(content && modalBody && modal){
+      modalBody.innerHTML = content.innerHTML;
+      modal.classList.add('open');
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════════════ */
+document.querySelectorAll('.quiz-card').forEach(card => {
+  const opts = card.querySelectorAll('.opt');
+  const btn = card.querySelector('.quiz-reveal-btn');
+  const exp = card.querySelector('.quiz-explain');
+  const correct = card.dataset.answer;
+  let answered = false;
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if(answered) return;
+      opts.forEach(o => o.classList.remove('chosen'));
+      opt.classList.add('chosen');
+      card.dataset.selected = opt.dataset.opt;
+      updateProgress();
+    });
+  });
+
+  if(btn) {
+    btn.addEventListener('click', () => {
+      if(!card.dataset.selected){ btn.textContent='⚠️ Chọn đáp án!'; setTimeout(()=>btn.textContent='Xem đáp án',1200); return; }
+      answered = true; btn.style.display='none'; if(exp) exp.classList.add('show');
+      opts.forEach(o => {
+        o.style.cursor='default'; o.classList.remove('chosen');
+        if(o.dataset.opt===correct) o.classList.add('correct');
+        else if(o.dataset.opt===card.dataset.selected) o.classList.add('wrong');
+      });
+      updateProgress();
+    });
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARD
+═══════════════════════════════════════════════════ */
+let fcFlipped = 0;
+function flipFC(el) {
+  el.classList.toggle('flipped');
+  fcFlipped += el.classList.contains('flipped') ? 1 : -1;
+  fcFlipped = Math.max(0, fcFlipped);
+  document.querySelectorAll('.fc-prog-label').forEach(l => {
+    const total = document.querySelectorAll('.fc').length;
+    l.textContent = fcFlipped + ' / ' + total + ' thẻ';
+  });
+  updateProgress();
+}
+function resetFC() {
+  document.querySelectorAll('.fc').forEach(c=>c.classList.remove('flipped'));
+  fcFlipped = 0;
+  document.querySelectorAll('.fc-prog-label').forEach(l => {
+    const total = document.querySelectorAll('.fc').length;
+    l.textContent = '0 / ' + total + ' thẻ';
+  });
+  updateProgress();
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+updateProgress();
+</script>
+
+<!-- VB detail modal data -->
+<div id="vb-details" style="display:none">
+  <div id="vbd-0"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">⚖️ Quyết định</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">Văn bản do người có thẩm quyền ban hành để quyết định vấn đề quan trọng.</div></div><div class="detail-row"><div class="detail-key">Phân loại</div><div class="detail-val"><strong>QĐ quy phạm:</strong> quy tắc chung, áp dụng nhiều lần<br><strong>QĐ cá biệt:</strong> đối tượng cụ thể (bổ nhiệm, khen thưởng)</div></div><div class="detail-row"><div class="detail-key">Cấu trúc</div><div class="detail-val">Căn cứ → Điều 1 → Điều 2 → Điều 3 (hiệu lực)</div></div><div class="detail-row"><div class="detail-key">Người ký</div><div class="detail-val">Người đứng đầu cơ quan, tổ chức (hoặc được ủy quyền)</div></div></div></div>
+  <div id="vbd-1"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">📨 Công văn</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">VB <strong>không có tên loại</strong>, dùng để giao dịch công vụ.</div></div><div class="detail-row"><div class="detail-key">Phân loại</div><div class="detail-val">CV hỏi–đáp / đề nghị / hướng dẫn / mời / giải trình / chỉ đạo / đôn đốc</div></div><div class="detail-row"><div class="detail-key">Nhận dạng</div><div class="detail-val">Có "Kính gửi:", không có tên loại, chỉ ghi V/v:</div></div><div class="detail-row"><div class="detail-key">Chiều luồng</div><div class="detail-val">Mọi chiều</div></div></div></div>
+  <div id="vbd-2"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">📢 Thông báo</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">Truyền đạt thông tin về quyết định, chủ trương, lịch họp, sự kiện...</div></div><div class="detail-row"><div class="detail-key">Phân loại</div><div class="detail-val"><strong>TB nội bộ:</strong> lịch họp, kết quả họp<br><strong>TB công khai:</strong> tuyển dụng, mời thầu</div></div><div class="detail-row"><div class="detail-key">Đặc điểm</div><div class="detail-val">"THÔNG BÁO" viết hoa, in đậm, căn giữa</div></div></div></div>
+  <div id="vbd-3"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">📊 Báo cáo</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">Phản ánh tình hình thực tế lên cấp trên. <strong>Không xin phê duyệt</strong>.</div></div><div class="detail-row"><div class="detail-key">Cấu trúc</div><div class="detail-val">I. Kết quả → II. Tồn tại → III. Kiến nghị</div></div><div class="detail-row"><div class="detail-key">Phân loại</div><div class="detail-val">BC định kỳ / đột xuất / chuyên đề / tổng kết</div></div></div></div>
+  <div id="vbd-4"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">📋 Tờ trình</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">Trình cấp có thẩm quyền <strong>xem xét, phê duyệt</strong> một đề xuất.</div></div><div class="detail-row"><div class="detail-key">Khác BC</div><div class="detail-val">TTr có mục đích xin phê duyệt; BC nhằm thông tin phản ánh.</div></div><div class="detail-row"><div class="detail-key">Cấu trúc</div><div class="detail-val">Sự cần thiết → Cơ sở pháp lý → Nội dung đề xuất → Kiến nghị</div></div></div></div>
+  <div id="vbd-5"><h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:14px">📝 Biên bản</h3><div class="detail-rows"><div class="detail-row"><div class="detail-key">Khái niệm</div><div class="detail-val">Ghi nhận diễn biến thực tế của sự kiện, có giá trị pháp lý.</div></div><div class="detail-row"><div class="detail-key">Đặc điểm</div><div class="detail-val">Không bắt buộc số ký hiệu. Không tẩy xóa. Có chữ ký các bên.</div></div><div class="detail-row"><div class="detail-key">Phân loại</div><div class="detail-val">BB họp / kiểm tra / bàn giao / vi phạm / nghiệm thu</div></div></div></div>
+</div>
+
+</body>
+</html>
